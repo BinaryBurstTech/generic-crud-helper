@@ -12,7 +12,7 @@ version = "1.0"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21) // nebo specifikujte 17, pokud chcete
+        languageVersion = JavaLanguageVersion.of(17) // nebo specifikujte 17, pokud chcete
     }
 }
 
