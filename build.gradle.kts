@@ -45,10 +45,19 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.named<Jar>("jar") {
+    enabled = true
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    enabled = false
+}
+
 publishing {
     publications {
-        create<MavenPublication>("gpr") {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
         }
     }
 }
+
