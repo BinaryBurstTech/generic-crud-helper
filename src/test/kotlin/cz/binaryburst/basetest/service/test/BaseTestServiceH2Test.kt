@@ -1,5 +1,9 @@
 package cz.binaryburst.basetest.service.test
 
+import cz.binaryburst.basetest.service.dto.BaseTestInsertDto
+import cz.binaryburst.basetest.service.mapper.BaseTestMapper
+import cz.binaryburst.basetest.service.repository.BaseTestRepository
+import cz.binaryburst.basetest.service.service.BaseTestService
 import cz.binaryburst.generic.exception.EntityIdAlreadyExistException
 import cz.binaryburst.generic.exception.EntityNotFoundException
 import org.junit.jupiter.api.Assertions.*
@@ -8,10 +12,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
-import cz.binaryburst.basetest.service.dto.BaseTestInsertDto
-import cz.binaryburst.basetest.service.mapper.BaseTestMapper
-import cz.binaryburst.basetest.service.repository.BaseTestRepository
-import cz.binaryburst.basetest.service.service.BaseTestService
 
 
 @SpringBootTest

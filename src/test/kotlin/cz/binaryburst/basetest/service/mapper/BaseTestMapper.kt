@@ -1,11 +1,11 @@
 package cz.binaryburst.basetest.service.mapper
 
-import cz.binaryburst.generic.mapper.IDataMapper
-import org.springframework.stereotype.Component
 import cz.binaryburst.basetest.service.dto.BaseTestInsertDto
 import cz.binaryburst.basetest.service.dto.BaseTestOutputDto
 import cz.binaryburst.basetest.service.entity.BaseTestEntity
 import cz.binaryburst.basetest.service.model.BaseTestModel
+import cz.binaryburst.generic.mapper.IDataMapper
+import org.springframework.stereotype.Component
 
 @Component
 class BaseTestMapper : IDataMapper<BaseTestInsertDto, BaseTestOutputDto, BaseTestModel, BaseTestEntity, Long> {
