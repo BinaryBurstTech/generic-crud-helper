@@ -45,8 +45,8 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.named<Jar>("jar") {
-    archiveClassifier.set("")
+tasks.named<Jar>("bootJar") {
+    archiveClassifier.set("boot")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -57,7 +57,6 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(tasks.named("jar").get())
         }
     }
 }
