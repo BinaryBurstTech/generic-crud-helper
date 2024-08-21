@@ -2,7 +2,7 @@
 # Generic Spring Boot Kotlin Library
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.3-blue)
 ![Downloads](https://img.shields.io/badge/downloads-100%2B-brightgreen)
 
 ## Table of Contents
