@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.github.BinaryBurstTech"
-version = "1.7"
+version = "1.8"
 
 java {
     toolchain {
@@ -18,7 +18,7 @@ java {
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://jitpack.io") } // Add JitPack at the end
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
@@ -40,7 +40,7 @@ tasks.withType<Test> {
 }
 
 tasks.named<Jar>("jar") {
-    enabled = false // Disable the default jar task if not needed
+    enabled = false // Disable the standard jar task to avoid conflicts
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -50,11 +50,12 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components["java"])  // Ensures the bootJar is used if it's the primary artifact
+            artifact(tasks.named("bootJar").get()) // Ensure the bootJar is used
         }
     }
     repositories {
         maven {
+            name = "jitpack"
             url = uri("https://jitpack.io")
         }
     }
