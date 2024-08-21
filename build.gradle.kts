@@ -5,6 +5,7 @@ plugins {
     kotlin("plugin.spring") version "1.9.24"
     kotlin("plugin.jpa") version "1.9.24"
     `maven-publish`
+    id("org.jetbrains.dokka") version "1.9.20"  // Apply Dokka plugin
 }
 
 group = "com.github.BinaryBurstTech"
@@ -50,10 +51,45 @@ tasks.named<Jar>("jar") {
     archiveClassifier.set("")  // Ensure no additional classifier is added to the JAR name
 }
 
+// Configure Dokka HTML task
+tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
+    outputDirectory.set(layout.buildDirectory.dir("dokka/html").get().asFile)
+    dokkaSourceSets {
+        named("main") {
+            includeNonPublic.set(false)
+            skipDeprecated.set(true)
+            reportUndocumented.set(true)
+            jdkVersion.set(8)
+            noStdlibLink.set(false)
+            noJdkLink.set(false)
+        }
+    }
+}
+
+// Create JAR files that include the sources and documentation
+val dokkaHtmlJar by tasks.creating(Jar::class) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles Kotlin docs with Dokka in HTML format"
+    archiveClassifier.set("javadoc")
+    from(tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>())
+}
+
+val sourcesJar by tasks.creating(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allSource)
+}
+
+artifacts {
+    archives(sourcesJar)
+    archives(dokkaHtmlJar)
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])  // Use the standard JAR, not the boot JAR
+            artifact(tasks["sourcesJar"])
+            artifact(tasks["dokkaHtmlJar"])
         }
     }
     repositories {
