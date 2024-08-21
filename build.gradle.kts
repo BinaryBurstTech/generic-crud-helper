@@ -5,11 +5,11 @@ plugins {
     kotlin("plugin.spring") version "1.9.24"
     kotlin("plugin.jpa") version "1.9.24"
     `maven-publish`
-    id("org.jetbrains.dokka") version "1.9.20"  // Apply Dokka plugin
+    id("org.jetbrains.dokka") version "1.9.20"
 }
 
 group = "com.github.BinaryBurstTech"
-version = "1.8"
+version = "1.0.3"
 
 java {
     toolchain {
@@ -20,6 +20,14 @@ java {
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
+}
+
+configurations.matching { it.name.startsWith("dokka") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group.startsWith("com.fasterxml.jackson")) {
+            useVersion("2.15.3")
+        }
+    }
 }
 
 dependencies {
