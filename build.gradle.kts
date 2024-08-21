@@ -7,8 +7,8 @@ plugins {
     `maven-publish`
 }
 
-group = "cz.binaryburst"
-version = "1.0"
+group = "com.github.BinaryBurstTech"
+version = "1.7"
 
 java {
     toolchain {
@@ -18,7 +18,7 @@ java {
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://jitpack.io") } // Add JitPack at the end
 }
 
 dependencies {
@@ -40,7 +40,7 @@ tasks.withType<Test> {
 }
 
 tasks.named<Jar>("jar") {
-    enabled = false
+    enabled = false // Disable the default jar task if not needed
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -50,12 +50,11 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifact(tasks.named("bootJar").get())
+            from(components["java"])  // Ensures the bootJar is used if it's the primary artifact
         }
     }
     repositories {
         maven {
-            name = "jitpack"
             url = uri("https://jitpack.io")
         }
     }
