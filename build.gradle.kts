@@ -46,7 +46,7 @@ tasks.withType<Test> {
 }
 
 tasks.named<Jar>("jar") {
-    enabled = true
+    archiveClassifier.set("")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -57,7 +57,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            artifact(tasks.named("jar").get())
         }
     }
 }
-
