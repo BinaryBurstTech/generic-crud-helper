@@ -39,18 +39,21 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.named<Jar>("jar") {
-    enabled = false // Disable the standard jar task to avoid conflicts
+// Disable the bootJar task as we want a regular JAR for a library
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    enabled = false
 }
 
-tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    archiveFileName.set("${project.name}-${project.version}.jar")
+// Enable the standard JAR task for creating a regular JAR
+tasks.named<Jar>("jar") {
+    enabled = true
+    archiveClassifier.set("")  // Ensure no additional classifier is added to the JAR name
 }
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifact(tasks.named("bootJar").get()) // Ensure the bootJar is used
+            from(components["java"])  // Use the standard JAR, not the boot JAR
         }
     }
     repositories {
