@@ -35,28 +35,28 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
 tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.named<Jar>("bootJar") {
-    archiveClassifier.set("boot")
+tasks.named<Jar>("jar") {
+    archiveClassifier.set("")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    enabled = false
+    archiveFileName.set("${project.name}-${project.version}.jar")
 }
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components["java"])
+            from(components["java"])  // This is the main artifact for publication
+        }
+    }
+    repositories {
+        maven {
+            name = "jitpack"
+            url = uri("https://jitpack.io")
         }
     }
 }
