@@ -84,11 +84,17 @@ Implement the `IDataMapper` interface to handle conversions between your DTOs, m
 ```kotlin
 class YourEntityMapper : IDataMapper<YourInsertDto, YourOutputDto, YourModel, YourEntity, Long> {
     override fun convertDtoToModel(dto: YourInsertDto): YourModel {
-        // conversion logic
+        return YourModel(
+            id = dto.id,
+            name = dto.name
+        )
     }
     
     override fun convertModelToDtoOut(model: YourModel): YourOutputDto {
-        // conversion logic
+        return YourOutputDto(
+            id = model.id,
+            name = model.name
+        )
     }
 
     // Implement other methods...
