@@ -16,6 +16,17 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 import java.io.Serializable
 
+/**
+ * Base service class providing common CRUD operations for entities.
+ *
+ * @param ID The type of the entity identifier.
+ * @param DTO_IN The type of the input DTO.
+ * @param DTO_OUT The type of the output DTO.
+ * @param MODEL The type of the model representing the business logic.
+ * @param ENTITY The type of the entity managed by the repository.
+ * @param REPO The type of the repository managing the entity.
+ * @param MAPPER The type of the data mapper used for converting between models, entities, and DTOs.
+ */
 abstract class BaseService<
         ID : Serializable,
         DTO_IN : BaseInsertDto<ID>,
@@ -30,6 +41,12 @@ abstract class BaseService<
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Retrieves all entities from the repository.
+     *
+     * @return A list of all models.
+     * @throws Exception if an error occurs while fetching the entities.
+     */
     override fun findAll(): List<MODEL> {
         logger.debug("Entering findAll()")
         return try {
@@ -44,6 +61,15 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Creates a new entity in the repository.
+     *
+     * @param model The model representing the entity to be created.
+     * @return The created model.
+     * @throws EntityIdAlreadyExistException if an entity with the same ID already exists.
+     * @throws EntityValidationException if the entity validation fails.
+     * @throws Exception if an error occurs during creation.
+     */
     @Transactional
     override fun create(model: MODEL): MODEL {
         logger.debug("Entering create() with model: {}", model)
@@ -68,6 +94,14 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Finds an entity by its ID.
+     *
+     * @param id The ID of the entity to find.
+     * @return The model of the found entity.
+     * @throws EntityNotFoundException if no entity with the given ID is found.
+     * @throws Exception if an error occurs during the search.
+     */
     override fun findById(id: ID): MODEL {
         logger.debug("Entering findById() with ID: {}", id)
         return try {
@@ -86,6 +120,16 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Updates an existing entity in the repository.
+     *
+     * @param model The model representing the updated entity.
+     * @return The updated model.
+     * @throws EntityNotFoundException if no entity with the given ID is found.
+     * @throws EntityIdNotFoundException if the entity ID is not provided.
+     * @throws EntityValidationException if the entity validation fails.
+     * @throws Exception if an error occurs during the update.
+     */
     @Transactional
     override fun update(model: MODEL): MODEL {
         logger.debug("Entering update() with model: {}", model)
@@ -114,6 +158,12 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Deletes an entity by its ID.
+     *
+     * @param id The ID of the entity to delete.
+     * @throws Exception if an error occurs during deletion.
+     */
     @Transactional
     override fun deleteById(id: ID) {
         logger.debug("Entering deleteById() with ID: {}", id)
@@ -128,6 +178,14 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Adds multiple entities to the repository.
+     *
+     * @param models A list of models representing the entities to add.
+     * @return A list of the added models.
+     * @throws EntityValidationException if any entity validation fails.
+     * @throws Exception if an error occurs during the addition.
+     */
     @Transactional
     override fun addAll(models: List<MODEL>): List<MODEL> {
         logger.debug("Entering addAll() with models: {}", models)
@@ -148,6 +206,16 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Updates multiple entities in the repository.
+     *
+     * @param models A list of models representing the entities to update.
+     * @return A list of the updated models.
+     * @throws EntityNotFoundException if any entity is not found.
+     * @throws EntityIdNotFoundException if any entity ID is not provided.
+     * @throws EntityValidationException if any entity validation fails.
+     * @throws Exception if an error occurs during the update.
+     */
     @Transactional
     override fun updateAll(models: List<MODEL>): List<MODEL> {
         logger.debug("Entering updateAll() with models: {}", models)
@@ -178,6 +246,11 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Deletes all entities in the repository.
+     *
+     * @throws Exception if an error occurs during deletion.
+     */
     @Transactional
     override fun deleteAll() {
         logger.debug("Entering deleteAll()")
@@ -192,10 +265,26 @@ abstract class BaseService<
         }
     }
 
+    /**
+     * Converts a model to an entity.
+     *
+     * @return The entity corresponding to the model.
+     */
     private fun MODEL.toEntity(): ENTITY = mapper.convertModelToEntity(this)
 
+    /**
+     * Extracts the ID from a model.
+     *
+     * @return The ID of the model, or null if the model has no ID.
+     */
     private fun MODEL.getId(): ID? = mapper.extractIdFromModel(this)
 
+    /**
+     * Validates that a new entity ID does not already exist in the repository.
+     *
+     * @param id The ID to validate.
+     * @throws EntityIdAlreadyExistException if an entity with the given ID already exists.
+     */
     private fun validateNewEntityId(id: ID?) {
         id?.let { validateId ->
             logger.debug("Validating new entity ID: {}", validateId)

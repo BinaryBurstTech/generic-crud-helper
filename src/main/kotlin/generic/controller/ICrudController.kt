@@ -65,7 +65,7 @@ interface ICrudController<ID : Serializable, DTO_IN, DTO_OUT> {
      * @param dtos The list of DTO_IN objects to add.
      * @return A ResponseEntity with an HTTP status code.
      */
-    fun addAll(dtos: List<DTO_IN>): ResponseEntity<Unit>
+    fun addAll(dtos: List<DTO_IN>): ResponseEntity<List<DTO_OUT>>
 
     /**
      * Updates a list of entities.
@@ -73,5 +73,5 @@ interface ICrudController<ID : Serializable, DTO_IN, DTO_OUT> {
      * @param dtos The list of DTO_IN objects containing the updated data.
      * @return A ResponseEntity with an HTTP status code.
      */
-    fun updateAll(dtos: List<DTO_IN>): ResponseEntity<Unit>
+    fun updateAll(dtos: List<DTO_IN>): ResponseEntity<List<DTO_OUT>>
 }

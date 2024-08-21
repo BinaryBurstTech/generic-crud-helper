@@ -44,6 +44,11 @@ abstract class BaseController<
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Retrieves all entities.
+     *
+     * @return A ResponseEntity containing a list of all DTO_OUT or an HTTP status code.
+     */
     override fun getAll(): ResponseEntity<List<DTO_OUT>> {
         logger.debug("Entering getAll()")
         return try {
@@ -58,6 +63,12 @@ abstract class BaseController<
         }
     }
 
+    /**
+     * Retrieves a specific entity by its ID.
+     *
+     * @param id The ID of the entity to retrieve.
+     * @return A ResponseEntity containing the DTO_OUT of the entity or an HTTP status code.
+     */
     override fun get(id: ID): ResponseEntity<DTO_OUT> {
         logger.debug("Entering get() with ID: {}", id)
         return try {
@@ -65,7 +76,7 @@ abstract class BaseController<
             logger.debug("Successfully retrieved entity with ID: {}", id)
             ResponseEntity(dtoOut, HttpStatus.OK)
         } catch (e: EntityNotFoundException) {
-            logger.warn("Entity not found: $e.message", e)
+            logger.warn("Entity not found: ${e.message}", e)
             ResponseEntity(HttpStatus.NOT_FOUND)
         } catch (e: Exception) {
             logger.error("Error occurred while fetching entity with ID: $id", e)
@@ -75,6 +86,12 @@ abstract class BaseController<
         }
     }
 
+    /**
+     * Creates a new entity.
+     *
+     * @param dto The DTO_IN object containing the data to create the entity.
+     * @return A ResponseEntity containing the DTO_OUT of the created entity or an HTTP status code.
+     */
     override fun create(dto: DTO_IN): ResponseEntity<DTO_OUT> {
         logger.debug("Entering create() with DTO: {}", dto)
         return try {
@@ -82,7 +99,7 @@ abstract class BaseController<
             logger.debug("Successfully created entity with ID: {}", createdItem.id)
             ResponseEntity(createdItem, HttpStatus.CREATED)
         } catch (e: EntityValidationException) {
-            logger.warn("Validation failed during entity creation: $e.message", e)
+            logger.warn("Validation failed during entity creation: ${e.message}", e)
             ResponseEntity(HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             logger.error("Error occurred while creating entity", e)
@@ -92,6 +109,13 @@ abstract class BaseController<
         }
     }
 
+    /**
+     * Updates an existing entity by its ID.
+     *
+     * @param id The ID of the entity to update.
+     * @param dto The DTO_IN object containing the updated data.
+     * @return A ResponseEntity containing the DTO_OUT of the updated entity or an HTTP status code.
+     */
     override fun update(id: ID, dto: DTO_IN): ResponseEntity<DTO_OUT> {
         logger.debug("Entering update() with ID: {} and DTO: {}", id, dto)
         return try {
@@ -105,10 +129,10 @@ abstract class BaseController<
             logger.warn("Update failed: Path variable ID and DTO ID do not match", e)
             ResponseEntity(HttpStatus.BAD_REQUEST)
         } catch (e: EntityNotFoundException) {
-            logger.warn("Entity not found during update: $e.message", e)
+            logger.warn("Entity not found during update: ${e.message}", e)
             ResponseEntity(HttpStatus.NOT_FOUND)
         } catch (e: EntityValidationException) {
-            logger.warn("Validation failed during entity update: $e.message", e)
+            logger.warn("Validation failed during entity update: ${e.message}", e)
             ResponseEntity(HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             logger.error("Error occurred while updating entity with ID: $id", e)
@@ -118,6 +142,12 @@ abstract class BaseController<
         }
     }
 
+    /**
+     * Deletes a specific entity by its ID.
+     *
+     * @param id The ID of the entity to delete.
+     * @return A ResponseEntity with an HTTP status code.
+     */
     override fun delete(id: ID): ResponseEntity<Unit> {
         logger.debug("Entering delete() with ID: {}", id)
         return try {
@@ -125,7 +155,7 @@ abstract class BaseController<
             logger.debug("Successfully deleted entity with ID: {}", id)
             ResponseEntity(HttpStatus.NO_CONTENT)
         } catch (e: EntityNotFoundException) {
-            logger.warn("Entity not found during deletion: $e.message", e)
+            logger.warn("Entity not found during deletion: ${e.message}", e)
             ResponseEntity(HttpStatus.NOT_FOUND)
         } catch (e: Exception) {
             logger.error("Error occurred while deleting entity with ID: $id", e)
@@ -135,6 +165,11 @@ abstract class BaseController<
         }
     }
 
+    /**
+     * Deletes all entities.
+     *
+     * @return A ResponseEntity with an HTTP status code.
+     */
     override fun deleteAll(): ResponseEntity<Unit> {
         logger.debug("Entering deleteAll()")
         return try {
@@ -149,14 +184,20 @@ abstract class BaseController<
         }
     }
 
-    override fun addAll(dtos: List<DTO_IN>): ResponseEntity<Unit> {
+    /**
+     * Adds a list of entities.
+     *
+     * @param dtos The list of DTO_IN objects to add.
+     * @return A ResponseEntity with an HTTP status code.
+     */
+    override fun addAll(dtos: List<DTO_IN>): ResponseEntity<List<DTO_OUT>> {
         logger.debug("Entering addAll() with DTOs: {}", dtos)
         return try {
             service.addAll(dtos.map(mapper::convertDtoToModel))
             logger.debug("Successfully added all entities")
             ResponseEntity(HttpStatus.NO_CONTENT)
         } catch (e: EntityValidationException) {
-            logger.warn("Validation failed during batch addition: $e.message", e)
+            logger.warn("Validation failed during batch addition: ${e.message}", e)
             ResponseEntity(HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             logger.error("Error occurred while adding entities", e)
@@ -166,14 +207,20 @@ abstract class BaseController<
         }
     }
 
-    override fun updateAll(dtos: List<DTO_IN>): ResponseEntity<Unit> {
+    /**
+     * Updates a list of entities.
+     *
+     * @param dtos The list of DTO_IN objects containing the updated data.
+     * @return A ResponseEntity with an HTTP status code.
+     */
+    override fun updateAll(dtos: List<DTO_IN>): ResponseEntity<List<DTO_OUT>> {
         logger.debug("Entering updateAll() with DTOs: {}", dtos)
         return try {
             service.updateAll(dtos.map(mapper::convertDtoToModel))
             logger.debug("Successfully updated all entities")
             ResponseEntity(HttpStatus.NO_CONTENT)
         } catch (e: EntityValidationException) {
-            logger.warn("Validation failed during batch update: $e.message", e)
+            logger.warn("Validation failed during batch update: ${e.message}", e)
             ResponseEntity(HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             logger.error("Error occurred while updating entities", e)
