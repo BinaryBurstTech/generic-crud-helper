@@ -10,7 +10,7 @@ import java.io.Serializable
  * @param DTO_IN The type of the input DTO.
  * @param DTO_OUT The type of the output DTO.
  */
-interface ICrudController<ID : Serializable, DTO_IN, DTO_OUT> {
+interface IBaseController<ID : Serializable, DTO_IN, DTO_OUT> {
 
     /**
      * Retrieves all entities.

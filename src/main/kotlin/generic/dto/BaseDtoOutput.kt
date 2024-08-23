@@ -7,7 +7,7 @@ import java.io.Serializable
  *
  * @param ID The type of the entity identifier.
  */
-abstract class BaseOutputDto<ID : Serializable> {
+abstract class BaseDtoOutput<ID : Serializable> {
     /**
      * The identifier of the entity.
      */

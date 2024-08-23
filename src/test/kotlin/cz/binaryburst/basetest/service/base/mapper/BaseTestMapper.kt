@@ -1,23 +1,23 @@
-package cz.binaryburst.basetest.service.mapper
+package cz.binaryburst.basetest.service.base.mapper
 
-import cz.binaryburst.basetest.service.dto.BaseTestInsertDto
-import cz.binaryburst.basetest.service.dto.BaseTestOutputDto
-import cz.binaryburst.basetest.service.entity.BaseTestEntity
-import cz.binaryburst.basetest.service.model.BaseTestModel
-import cz.binaryburst.generic.mapper.IDataMapper
+import cz.binaryburst.basetest.service.base.dto.BaseTestDtoInput
+import cz.binaryburst.basetest.service.base.dto.BaseTestDtoOutput
+import cz.binaryburst.basetest.service.base.entity.BaseTestEntity
+import cz.binaryburst.basetest.service.base.model.BaseTestModel
+import cz.binaryburst.generic.mapper.IBaseMapper
 import org.springframework.stereotype.Component
 
 @Component
-class BaseTestMapper : IDataMapper<BaseTestInsertDto, BaseTestOutputDto, BaseTestModel, BaseTestEntity, Long> {
-    override fun convertDtoToModel(dto: BaseTestInsertDto): BaseTestModel {
+class BaseTestMapper : IBaseMapper<BaseTestDtoInput, BaseTestDtoOutput, BaseTestModel, BaseTestEntity, Long> {
+    override fun convertDtoToModel(dto: BaseTestDtoInput): BaseTestModel {
         return BaseTestModel(
             id = dto.id,
             name = dto.name
         )
     }
 
-    override fun convertModelToDtoOut(model: BaseTestModel): BaseTestOutputDto {
-        return BaseTestOutputDto(
+    override fun convertModelToDtoOut(model: BaseTestModel): BaseTestDtoOutput {
+        return BaseTestDtoOutput(
             id = model.id,
             name = model.name
         )
@@ -46,8 +46,8 @@ class BaseTestMapper : IDataMapper<BaseTestInsertDto, BaseTestOutputDto, BaseTes
         return model.id
     }
 
-    override fun convertEntityToDto(entity: BaseTestEntity): BaseTestOutputDto {
-        return BaseTestOutputDto(
+    override fun convertEntityToDto(entity: BaseTestEntity): BaseTestDtoOutput {
+        return BaseTestDtoOutput(
             id = entity.id,
             name = entity.name
         )

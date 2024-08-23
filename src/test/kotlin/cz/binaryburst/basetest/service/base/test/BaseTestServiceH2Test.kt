@@ -1,9 +1,9 @@
-package cz.binaryburst.basetest.service.test
+package cz.binaryburst.basetest.service.base.test
 
-import cz.binaryburst.basetest.service.dto.BaseTestInsertDto
-import cz.binaryburst.basetest.service.mapper.BaseTestMapper
-import cz.binaryburst.basetest.service.repository.BaseTestRepository
-import cz.binaryburst.basetest.service.service.BaseTestService
+import cz.binaryburst.basetest.service.base.dto.BaseTestDtoInput
+import cz.binaryburst.basetest.service.base.mapper.BaseTestMapper
+import cz.binaryburst.basetest.service.base.repository.BaseTestRepository
+import cz.binaryburst.basetest.service.base.service.BaseTestService
 import cz.binaryburst.generic.exception.EntityIdAlreadyExistException
 import cz.binaryburst.generic.exception.EntityNotFoundException
 import org.junit.jupiter.api.Assertions.*
@@ -35,7 +35,7 @@ class BaseTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `create should persist and return new entity`() {
-        val baseTestInsertDto = BaseTestInsertDto(name = "Test")
+        val baseTestInsertDto = BaseTestDtoInput(name = "Test")
         val baseTest = service.create(baseTestInsertDto.let(mapper::convertDtoToModel))
         assertNotNull(baseTest)
         assertEquals(1, service.findAll().size)
@@ -44,7 +44,7 @@ class BaseTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `findById should return existing entity by ID`() {
-        val baseTestInsertDto = BaseTestInsertDto(name = "Test")
+        val baseTestInsertDto = BaseTestDtoInput(name = "Test")
         val baseTest = service.create(baseTestInsertDto.let(mapper::convertDtoToModel))
         val foundBaseTest = service.findById(baseTest.id)
         assertEquals(baseTest.id, foundBaseTest.id)
@@ -53,7 +53,7 @@ class BaseTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `update should modify and persist existing entity`() {
-        val baseTestInsertDto = BaseTestInsertDto(name = "Test")
+        val baseTestInsertDto = BaseTestDtoInput(name = "Test")
         val baseTest = service.create(baseTestInsertDto.let(mapper::convertDtoToModel))
         val updatedBaseTestInsertDto = baseTestInsertDto.copy(id = baseTest.id, name = "Updated Test")
         service.update(updatedBaseTestInsertDto.let(mapper::convertDtoToModel))
@@ -63,7 +63,7 @@ class BaseTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `deleteById should remove existing entity`() {
-        val baseTestInsertDto = BaseTestInsertDto(name = "Test")
+        val baseTestInsertDto = BaseTestDtoInput(name = "Test")
         val baseTest = service.create(baseTestInsertDto.let(mapper::convertDtoToModel))
         service.deleteById(baseTest.id)
         assertEquals(0, service.findAll().size)
@@ -72,8 +72,8 @@ class BaseTestServiceH2Test @Autowired constructor(
     @Test
     fun `addAll should persist multiple entities`() {
         val baseTests = listOf(
-            BaseTestInsertDto(name = "Test 1"),
-            BaseTestInsertDto(name = "Test 2")
+            BaseTestDtoInput(name = "Test 1"),
+            BaseTestDtoInput(name = "Test 2")
         )
         service.addAll(baseTests.map(mapper::convertDtoToModel))
         assertEquals(baseTests.size, service.findAll().size)
@@ -95,10 +95,10 @@ class BaseTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `create should throw EntityIdAlreadyExistException for existing entity ID`() {
-        val existingEntity = BaseTestInsertDto(name = "Existing Test")
+        val existingEntity = BaseTestDtoInput(name = "Existing Test")
         val createdEntity = service.create(existingEntity.let(mapper::convertDtoToModel))
 
-        val duplicateEntity = BaseTestInsertDto(id = createdEntity.id, name = "Duplicate Test")
+        val duplicateEntity = BaseTestDtoInput(id = createdEntity.id, name = "Duplicate Test")
 
         assertThrows(EntityIdAlreadyExistException::class.java) {
             service.create(duplicateEntity.let(mapper::convertDtoToModel))
@@ -107,7 +107,7 @@ class BaseTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `update should throw EntityNotFoundException for non-existent entity`() {
-        val nonExistentDto = BaseTestInsertDto(id = 999, name = "Non-existent Test")
+        val nonExistentDto = BaseTestDtoInput(id = 999, name = "Non-existent Test")
 
         assertThrows(EntityNotFoundException::class.java) {
             service.update(nonExistentDto.let(mapper::convertDtoToModel))

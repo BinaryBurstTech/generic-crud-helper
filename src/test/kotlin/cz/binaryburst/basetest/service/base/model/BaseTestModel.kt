@@ -1,4 +1,4 @@
-package cz.binaryburst.basetest.service.model
+package cz.binaryburst.basetest.service.base.model
 
 import cz.binaryburst.generic.model.BaseModel
 

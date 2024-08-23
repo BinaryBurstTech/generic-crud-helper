@@ -1,4 +1,4 @@
-package cz.binaryburst.basetest.service.entity
+package cz.binaryburst.basetest.service.base.entity
 
 import cz.binaryburst.generic.entity.BaseEntity
 import jakarta.persistence.*

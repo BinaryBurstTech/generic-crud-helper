@@ -9,7 +9,7 @@ import java.io.Serializable
  * @param ID The type of the entity identifier.
  * @param MODEL The type of the model managed by the service.
  */
-interface ICrudService<ID : Serializable, MODEL : BaseModel<ID>> {
+interface IBaseService<ID : Serializable, MODEL : BaseModel<ID>> {
 
     /**
      * Retrieves all entities.

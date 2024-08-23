@@ -1,11 +1,11 @@
 package cz.binaryburst.generic.controller
 
-import cz.binaryburst.generic.dto.BaseInsertDto
-import cz.binaryburst.generic.dto.BaseOutputDto
+import cz.binaryburst.generic.dto.BaseDtoInput
+import cz.binaryburst.generic.dto.BaseDtoOutput
 import cz.binaryburst.generic.entity.BaseEntity
 import cz.binaryburst.generic.exception.EntityNotFoundException
 import cz.binaryburst.generic.exception.EntityValidationException
-import cz.binaryburst.generic.mapper.IDataMapper
+import cz.binaryburst.generic.mapper.IBaseMapper
 import cz.binaryburst.generic.model.BaseModel
 import cz.binaryburst.generic.repository.BaseRepository
 import cz.binaryburst.generic.service.BaseService
@@ -30,17 +30,17 @@ import java.io.Serializable
  */
 abstract class BaseController<
         ID : Serializable,
-        DTO_IN : BaseInsertDto<ID>,
-        DTO_OUT : BaseOutputDto<ID>,
+        DTO_IN : BaseDtoInput<ID>,
+        DTO_OUT : BaseDtoOutput<ID>,
         MODEL : BaseModel<ID>,
         ENTITY : BaseEntity<ID>,
-        MAPPER : IDataMapper<DTO_IN, DTO_OUT, MODEL, ENTITY, ID>,
+        MAPPER : IBaseMapper<DTO_IN, DTO_OUT, MODEL, ENTITY, ID>,
         REPO : BaseRepository<ENTITY, ID>,
         SERVICE : BaseService<ID, DTO_IN, DTO_OUT, MODEL, ENTITY, REPO, MAPPER>,
         >(
     private val service: SERVICE,
     private val mapper: MAPPER
-) : ICrudController<ID, DTO_IN, DTO_OUT> {
+) : IBaseController<ID, DTO_IN, DTO_OUT> {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 

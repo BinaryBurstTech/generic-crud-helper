@@ -1,10 +1,10 @@
-package cz.binaryburst.basetest.service.dto
+package cz.binaryburst.basetest.service.base.dto
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import cz.binaryburst.generic.dto.BaseInsertDto
+import cz.binaryburst.generic.dto.BaseDtoInput
 
-data class BaseTestInsertDto @JsonCreator constructor(
+data class BaseTestDtoInput @JsonCreator constructor(
     @JsonProperty("id") override var id: Long = Long.MIN_VALUE,
     @JsonProperty("name") var name: String = "",
-) : BaseInsertDto<Long>()
+) : BaseDtoInput<Long>()

@@ -1,7 +1,7 @@
 package cz.binaryburst.generic.mapper
 
-import cz.binaryburst.generic.dto.BaseInsertDto
-import cz.binaryburst.generic.dto.BaseOutputDto
+import cz.binaryburst.generic.dto.BaseDtoInput
+import cz.binaryburst.generic.dto.BaseDtoOutput
 import cz.binaryburst.generic.entity.BaseEntity
 import cz.binaryburst.generic.model.BaseModel
 import java.io.Serializable
@@ -15,9 +15,9 @@ import java.io.Serializable
  * @param ENTITY The type of the entity.
  * @param ID The type of the entity identifier.
  */
-interface IDataMapper<
-        DTO_IN : BaseInsertDto<ID>,
-        DTO_OUT : BaseOutputDto<ID>,
+interface IBaseMapper<
+        DTO_IN : BaseDtoInput<ID>,
+        DTO_OUT : BaseDtoOutput<ID>,
         MODEL : BaseModel<ID>,
         ENTITY : BaseEntity<ID>,
         ID : Serializable> {

@@ -1,13 +1,13 @@
 package cz.binaryburst.generic.service
 
-import cz.binaryburst.generic.dto.BaseInsertDto
-import cz.binaryburst.generic.dto.BaseOutputDto
+import cz.binaryburst.generic.dto.BaseDtoInput
+import cz.binaryburst.generic.dto.BaseDtoOutput
 import cz.binaryburst.generic.entity.BaseEntity
 import cz.binaryburst.generic.exception.EntityIdAlreadyExistException
 import cz.binaryburst.generic.exception.EntityIdNotFoundException
 import cz.binaryburst.generic.exception.EntityNotFoundException
 import cz.binaryburst.generic.exception.EntityValidationException
-import cz.binaryburst.generic.mapper.IDataMapper
+import cz.binaryburst.generic.mapper.IBaseMapper
 import cz.binaryburst.generic.model.BaseModel
 import cz.binaryburst.generic.repository.BaseRepository
 import org.slf4j.Logger
@@ -29,15 +29,15 @@ import java.io.Serializable
  */
 abstract class BaseService<
         ID : Serializable,
-        DTO_IN : BaseInsertDto<ID>,
-        DTO_OUT : BaseOutputDto<ID>,
+        DTO_IN : BaseDtoInput<ID>,
+        DTO_OUT : BaseDtoOutput<ID>,
         MODEL : BaseModel<ID>,
         ENTITY : BaseEntity<ID>,
         REPO : BaseRepository<ENTITY, ID>,
-        MAPPER : IDataMapper<DTO_IN, DTO_OUT, MODEL, ENTITY, ID>>(
+        MAPPER : IBaseMapper<DTO_IN, DTO_OUT, MODEL, ENTITY, ID>>(
     open val repository: REPO,
     open val mapper: MAPPER
-) : ICrudService<ID, MODEL> {
+) : IBaseService<ID, MODEL> {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
