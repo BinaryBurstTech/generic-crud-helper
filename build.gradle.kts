@@ -1,19 +1,21 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 plugins {
-    id("org.springframework.boot") version "3.3.2"
-    id("io.spring.dependency-management") version "1.1.6"
-    kotlin("jvm") version "1.9.24"
-    kotlin("plugin.spring") version "1.9.24"
-    kotlin("plugin.jpa") version "1.9.24"
+    id("org.springframework.boot") version "3.4.2"
+    id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version "1.9.25"
+    kotlin("plugin.spring") version "1.9.25"
+    kotlin("plugin.jpa") version "1.9.25"
     `maven-publish`
-    id("org.jetbrains.dokka") version "1.9.20"
+    id("org.jetbrains.dokka") version "1.9.0"
 }
 
 group = "com.github.BinaryBurstTech"
-version = "1.0.3"
+version = "1.0.5"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -75,17 +77,17 @@ tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
 }
 
 // Create JAR files that include the sources and documentation
-val dokkaHtmlJar by tasks.creating(Jar::class) {
+val dokkaHtmlJar by tasks.registering(Jar::class, fun Jar.() {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = "Assembles Kotlin docs with Dokka in HTML format"
     archiveClassifier.set("javadoc")
-    from(tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>())
-}
+    from(tasks.withType<DokkaTask>())
+})
 
-val sourcesJar by tasks.creating(Jar::class) {
+val sourcesJar by tasks.registering(Jar::class, fun Jar.() {
     archiveClassifier.set("sources")
     from(sourceSets["main"].allSource)
-}
+})
 
 artifacts {
     archives(sourcesJar)

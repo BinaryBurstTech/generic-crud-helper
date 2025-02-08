@@ -9,7 +9,7 @@ import jakarta.persistence.*
 class EmbeddedTestEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    override val id: Long = Long.MIN_VALUE,
+    override val id: Long = 0,
 
     @Column(name = "name", nullable = false)
     var name: String = "",

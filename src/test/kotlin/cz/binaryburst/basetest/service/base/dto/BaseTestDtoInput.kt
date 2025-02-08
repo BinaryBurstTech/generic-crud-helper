@@ -5,6 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import cz.binaryburst.generic.dto.BaseDtoInput
 
 data class BaseTestDtoInput @JsonCreator constructor(
-    @JsonProperty("id") override var id: Long = Long.MIN_VALUE,
+    @JsonProperty("id") override var id: Long = 0,
     @JsonProperty("name") var name: String = "",
 ) : BaseDtoInput<Long>()

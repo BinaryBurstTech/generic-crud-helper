@@ -6,7 +6,7 @@ import cz.binaryburst.basetest.service.embeddable.dto.partial.EmbeddedChildTestO
 import cz.binaryburst.generic.dto.BaseDtoOutput
 
 data class EmbeddedTestDtoOutput @JsonCreator constructor(
-    @JsonProperty("id") override var id: Long = Long.MIN_VALUE,
+    @JsonProperty("id") override var id: Long = 0,
     @JsonProperty("name") var name: String = "",
     @JsonProperty("embedded") var embeddedChildTestOutputDto: EmbeddedChildTestOutputDto
 
