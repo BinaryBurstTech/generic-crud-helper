@@ -13,3 +13,5 @@ abstract class BaseEntity<ID : Serializable> {
      */
     abstract val id: ID
 }
+
+

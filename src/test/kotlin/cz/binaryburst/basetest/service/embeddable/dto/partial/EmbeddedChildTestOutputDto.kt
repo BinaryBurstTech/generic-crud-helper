@@ -8,4 +8,4 @@ import jakarta.persistence.Embeddable
 @Embeddable
 data class EmbeddedChildTestOutputDto @JsonCreator constructor(
     @JsonProperty("name") var name: String = ""
-): BasePartialDtoOutput()
+) : BasePartialDtoOutput()

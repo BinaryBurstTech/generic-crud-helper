@@ -8,4 +8,4 @@ import jakarta.persistence.Embeddable
 class EmbeddedChildTestEntity(
     @Column(name = "child_value", nullable = false)
     var value: String = ""
-): BasePartialEntity()
+) : BasePartialEntity()

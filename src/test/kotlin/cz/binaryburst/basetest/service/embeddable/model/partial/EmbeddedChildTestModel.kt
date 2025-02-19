@@ -4,4 +4,4 @@ import cz.binaryburst.generic.model.BasePartialModel
 
 data class EmbeddedChildTestModel(
     var name: String
-): BasePartialModel()
+) : BasePartialModel()

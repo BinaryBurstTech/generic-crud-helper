@@ -1,5 +1,6 @@
 package cz.binaryburst.basetest.service.base.service
 
+
 import cz.binaryburst.basetest.service.base.dto.BaseTestDtoInput
 import cz.binaryburst.basetest.service.base.dto.BaseTestDtoOutput
 import cz.binaryburst.basetest.service.base.entity.BaseTestEntity
