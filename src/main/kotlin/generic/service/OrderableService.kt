@@ -7,6 +7,7 @@ import cz.binaryburst.generic.exception.EntityNotFoundException
 import cz.binaryburst.generic.mapper.IOrderableMapper
 import cz.binaryburst.generic.model.OrderableModel
 import cz.binaryburst.generic.repository.OrderableRepository
+import cz.binaryburst.generic.repository.IOrderablePositionableRepository
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,6 +27,7 @@ import java.io.Serializable
  */
 abstract class OrderableService<
         ID : Serializable,
+        PARAMS : OrderableParams,
         DTO_IN : OrderableDtoInput<ID>,
         DTO_OUT : OrderableDtoOutput<ID>,
         MODEL : OrderableModel<ID>,
@@ -33,7 +35,8 @@ abstract class OrderableService<
         REPO : OrderableRepository<ENTITY, ID>,
         MAPPER : IOrderableMapper<DTO_IN, DTO_OUT, MODEL, ENTITY, ID>>(
     override val repository: REPO,
-    override val mapper: MAPPER
+    override val mapper: MAPPER,
+    val positionableRepository: IOrderablePositionableRepository<PARAMS, ENTITY>
 ) : BaseService<ID, DTO_IN, DTO_OUT, MODEL, ENTITY, REPO, MAPPER>(
     repository = repository,
     mapper = mapper
@@ -48,7 +51,7 @@ abstract class OrderableService<
     override fun findAll(): List<MODEL> {
         logger.debug("Entering findAll()")
         return try {
-            val models = repository.findAllByOrderByPositionAsc().map { mapper.convertEntityToModel(it) }
+            val models = positionableRepository.findAllByOrderByPositionAsc(null).map { mapper.convertEntityToModel(it) }
             logger.debug("Successfully retrieved {} entities", models.size)
             models
         } catch (e: Exception) {
@@ -66,9 +69,9 @@ abstract class OrderableService<
     override fun create(model: MODEL): MODEL {
         logger.debug("Entering create() with model: {}", model)
         return try {
-            val position = model.position ?: repository.findMaxPosition()?.plus(1) ?: 1
+            val position = model.position ?: positionableRepository.findMaxPosition(null)?.plus(1) ?: 1
             model.position = position
-            repository.incrementPositions(position)
+            positionableRepository.incrementPositions(position, null)
             super.create(model)
         } catch (e: Exception) {
             logger.error("Error occurred while creating entity", e)
@@ -87,7 +90,7 @@ abstract class OrderableService<
         try {
             val entity = repository.findByIdOrNull(id) ?: throw EntityNotFoundException(id, "Entity")
             super.deleteById(id)
-            repository.decrementPositions(entity.position)
+            positionableRepository.decrementPositions(entity.position, null)
             logger.debug("Successfully deleted entity with ID: {}", id)
         } catch (e: EntityNotFoundException) {
             logger.warn("Deletion failed: Entity not found", e)
@@ -126,9 +129,9 @@ abstract class OrderableService<
             val (entityToUpdate, newPosition) = getEntityAndUpdatePosition(model)
             if (entityToUpdate.position != newPosition) {
                 if (newPosition < entityToUpdate.position) {
-                    repository.incrementPositions(newPosition, entityToUpdate.position)
+                    positionableRepository.incrementPositions(newPosition, entityToUpdate.position, null)
                 } else {
-                    repository.decrementPositions(entityToUpdate.position, newPosition)
+                    positionableRepository.decrementPositions(entityToUpdate.position, newPosition, null)
                 }
                 entityToUpdate.position = newPosition
                 repository.save(entityToUpdate)
@@ -152,7 +155,7 @@ abstract class OrderableService<
         val entityId = model.id
         val entityToUpdate = repository.findByIdOrNull(entityId)
             ?: throw EntityNotFoundException(entityId, "Entity")
-        val maxPosition = repository.findMaxPosition() ?: 1
+        val maxPosition = positionableRepository.findMaxPosition(null) ?: 1
         val newPosition = model.position?.coerceIn(1, maxPosition + 1) ?: (maxPosition + 1)
         return Pair(entityToUpdate, newPosition)
     }

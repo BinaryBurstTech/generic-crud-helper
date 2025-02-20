@@ -7,15 +7,18 @@ import cz.binaryburst.basetest.service.orderable.entity.OrderableTestEntity
 import cz.binaryburst.basetest.service.orderable.mapper.OrderableTestMapper
 import cz.binaryburst.basetest.service.orderable.model.OrderableTestModel
 import cz.binaryburst.basetest.service.orderable.repository.OrderableTestRepository
+import cz.binaryburst.generic.repository.IOrderablePositionableRepository
 import cz.binaryburst.generic.service.OrderableService
 import org.springframework.stereotype.Service
 
 @Service
 class OrderableTestService(
     repository: OrderableTestRepository,
-    mapper: OrderableTestMapper
+    mapper: OrderableTestMapper,
+    positionableRepository: IOrderablePositionableRepository<OrderableParamsTest, OrderableTestEntity>
 ) : OrderableService<
         Long,
+        OrderableParamsTest,
         OrderableTestDtoInput,
         OrderableTestDtoOutput,
         OrderableTestModel,
@@ -24,5 +27,6 @@ class OrderableTestService(
         OrderableTestMapper
         >(
     repository = repository,
-    mapper = mapper
+    mapper = mapper,
+    positionableRepository = positionableRepository
 )
