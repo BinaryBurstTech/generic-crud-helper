@@ -9,14 +9,14 @@ import java.io.Serializable
  * @param ID The type of the entity identifier.
  * @param MODEL The type of the model managed by the service.
  */
-interface IOrderableService<ID : Serializable, MODEL : OrderableModel<ID>> {
+interface IOrderableService<ID : Serializable, PARAMS : OrderableParams, MODEL : OrderableModel<ID>> {
 
     /**
      * Retrieves all entities.
      *
      * @return A list of all models.
      */
-    fun findAll(): List<MODEL>
+    fun findAllOrderable(params: PARAMS?): List<MODEL>
 
     /**
      * Creates a new entity.
@@ -25,7 +25,7 @@ interface IOrderableService<ID : Serializable, MODEL : OrderableModel<ID>> {
      * @return The created model.
      * @throws EntityIdAlreadyExistException if an entity with the same ID already exists.
      */
-    fun create(model: MODEL): MODEL
+    fun createOrderable(model: MODEL, params: PARAMS?): MODEL
 
     /**
      * Retrieves an entity by its ID.
@@ -51,7 +51,7 @@ interface IOrderableService<ID : Serializable, MODEL : OrderableModel<ID>> {
      *
      * @param id The ID of the entity to delete.
      */
-    fun deleteById(id: ID)
+    fun deleteOrderableById(id: ID, params: PARAMS?)
 
     /**
      * Adds a list of entities.
@@ -59,15 +59,7 @@ interface IOrderableService<ID : Serializable, MODEL : OrderableModel<ID>> {
      * @param models The list of models to add.
      * @return A list of the added models.
      */
-    fun addAll(models: List<MODEL>): List<MODEL>
-
-    /**
-     * Updates a list of entities.
-     *
-     * @param models The list of models containing the updated data.
-     * @return A list of the updated models.
-     */
-    fun updateAll(models: List<MODEL>): List<MODEL>
+    fun addAllOrderable(models: List<MODEL>, params: PARAMS?): List<MODEL>
 
     /**
      * Reorders an entity within the list based on its new position.
@@ -82,10 +74,10 @@ interface IOrderableService<ID : Serializable, MODEL : OrderableModel<ID>> {
      * @throws Exception If any other error occurs during reordering.
      */
 
-    fun reorder(model: MODEL)
+    fun reorder(model: MODEL, params: PARAMS?)
 
     /**
      * Deletes all entities.
      */
-    fun deleteAll()
+    fun deleteOrderableAll(params: PARAMS?)
 }

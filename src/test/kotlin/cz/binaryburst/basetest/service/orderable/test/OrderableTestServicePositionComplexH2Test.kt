@@ -27,13 +27,13 @@ class OrderableTestServicePositionComplexH2Test @Autowired constructor(
     @Test
     fun `reorder should correctly move entity to last position`() {
         val entities = (1..5).map {
-            service.create(OrderableTestDtoInput(name = "Test $it", position = null).let(mapper::convertDtoToModel))
+            service.createOrderable(OrderableTestDtoInput(name = "Test $it", position = null).let(mapper::convertDtoToModel), null)
         }
 
         val entityToMove = entities[1].copy(position = 5) // Přesun na konec
-        service.reorder(entityToMove)
+        service.reorder(entityToMove, null)
 
-        val orderedEntities = service.findAll()
+        val orderedEntities = service.findAllOrderable(null)
 
         assertEquals(1, orderedEntities[0].position)
         assertEquals(5, orderedEntities.last().position)
@@ -43,13 +43,13 @@ class OrderableTestServicePositionComplexH2Test @Autowired constructor(
     @Test
     fun `reorder should correctly move entity to first position`() {
         val entities = (1..5).map {
-            service.create(OrderableTestDtoInput(name = "Test $it", position = null).let(mapper::convertDtoToModel))
+            service.createOrderable(OrderableTestDtoInput(name = "Test $it", position = null).let(mapper::convertDtoToModel), null)
         }
 
         val entityToMove = entities[3].copy(position = 1) // Přesun na začátek
-        service.reorder(entityToMove)
+        service.reorder(entityToMove, null)
 
-        val orderedEntities = service.findAll()
+        val orderedEntities = service.findAllOrderable(null)
 
         assertEquals(1, orderedEntities[0].position)
         assertEquals(entityToMove.id, orderedEntities[0].id)
@@ -58,13 +58,13 @@ class OrderableTestServicePositionComplexH2Test @Autowired constructor(
     @Test
     fun `reorder should correctly move entity to middle`() {
         val entities = (1..5).map {
-            service.create(OrderableTestDtoInput(name = "Test $it", position = null).let(mapper::convertDtoToModel))
+            service.createOrderable(OrderableTestDtoInput(name = "Test $it", position = null).let(mapper::convertDtoToModel), null)
         }
 
         val entityToMove = entities[4].copy(position = 3) // Přesun do středu
-        service.reorder(entityToMove)
+        service.reorder(entityToMove, null)
 
-        val orderedEntities = service.findAll()
+        val orderedEntities = service.findAllOrderable(null)
 
         assertEquals(3, orderedEntities[2].position)
         assertEquals(entityToMove.id, orderedEntities[2].id)
@@ -73,14 +73,14 @@ class OrderableTestServicePositionComplexH2Test @Autowired constructor(
     @Test
     fun `adding entity between two should shift positions`() {
         val entity1 =
-            service.create(OrderableTestDtoInput(name = "Test 1", position = 1).let(mapper::convertDtoToModel))
+            service.createOrderable(OrderableTestDtoInput(name = "Test 1", position = 1).let(mapper::convertDtoToModel), null)
         val entity2 =
-            service.create(OrderableTestDtoInput(name = "Test 2", position = 2).let(mapper::convertDtoToModel))
+            service.createOrderable(OrderableTestDtoInput(name = "Test 2", position = 2).let(mapper::convertDtoToModel), null)
 
         val newEntity =
-            service.create(OrderableTestDtoInput(name = "New Test", position = 2).let(mapper::convertDtoToModel))
+            service.createOrderable(OrderableTestDtoInput(name = "New Test", position = 2).let(mapper::convertDtoToModel), null)
 
-        val orderedEntities = service.findAll()
+        val orderedEntities = service.findAllOrderable(null)
 
         assertEquals(1, orderedEntities[0].position)
         assertEquals(newEntity.id, orderedEntities[1].id)
@@ -89,16 +89,16 @@ class OrderableTestServicePositionComplexH2Test @Autowired constructor(
 
     @Test
     fun `batch creation and reorder should keep positions consistent`() {
-        val createdEntities = service.addAll((1..10).map {
+        val createdEntities = service.addAllOrderable((1..10).map {
             OrderableTestDtoInput(name = "Batch $it", position = null).let(mapper::convertDtoToModel)
-        })
+        }, null)
 
         assertEquals(10, createdEntities.size)
 
         val entityToMove = createdEntities[5].copy(position = 2)
-        service.reorder(entityToMove)
+        service.reorder(entityToMove, null)
 
-        val orderedEntities = service.findAll()
+        val orderedEntities = service.findAllOrderable(null)
 
         assertEquals(entityToMove.id, orderedEntities[1].id)
         assertEquals(10, orderedEntities.size)
@@ -106,13 +106,13 @@ class OrderableTestServicePositionComplexH2Test @Autowired constructor(
 
     @Test
     fun `batch addition and deletion should keep positions valid`() {
-        val createdEntities = service.addAll((1..5).map {
+        val createdEntities = service.addAllOrderable((1..5).map {
             OrderableTestDtoInput(name = "Batch $it", position = null).let(mapper::convertDtoToModel)
-        })
+        }, null)
 
-        service.deleteById(createdEntities[2].id) // Smazání entity na pozici 3
+        service.deleteOrderableById(createdEntities[2].id, null) // Smazání entity na pozici 3
 
-        val remainingEntities = service.findAll()
+        val remainingEntities = service.findAllOrderable(null)
 
         assertEquals(4, remainingEntities.size)
         assertEquals(1, remainingEntities[0].position)
@@ -121,26 +121,26 @@ class OrderableTestServicePositionComplexH2Test @Autowired constructor(
 
     @Test
     fun `deleteAll should reset positions correctly`() {
-        service.addAll((1..5).map {
+        service.addAllOrderable((1..5).map {
             OrderableTestDtoInput(name = "Batch $it", position = null).let(mapper::convertDtoToModel)
-        })
+        }, null)
 
-        service.deleteAll()
+        service.deleteOrderableAll(null)
 
-        val remainingEntities = service.findAll()
+        val remainingEntities = service.findAllOrderable(null)
         assertEquals(0, remainingEntities.size)
     }
 
     @Test
     fun `mass delete should not leave gaps in position sequence`() {
-        val createdEntities = service.addAll((1..5).map {
+        val createdEntities = service.addAllOrderable((1..5).map {
             OrderableTestDtoInput(name = "Batch $it", position = null).let(mapper::convertDtoToModel)
-        })
+        }, null)
 
-        service.deleteById(createdEntities[1].id)
-        service.deleteById(createdEntities[3].id)
+        service.deleteOrderableById(createdEntities[1].id, null)
+        service.deleteOrderableById(createdEntities[3].id, null)
 
-        val remainingEntities = service.findAll()
+        val remainingEntities = service.findAllOrderable(null)
 
         assertEquals(3, remainingEntities.size)
         assertEquals(1, remainingEntities[0].position)

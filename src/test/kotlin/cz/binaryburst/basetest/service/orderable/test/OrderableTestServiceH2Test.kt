@@ -29,23 +29,23 @@ class OrderableTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `findAll should return empty list when no entities exist`() {
-        val result = service.findAll()
+        val result = service.findAllOrderable(null)
         assertEquals(0, result.size)
     }
 
     @Test
     fun `create should persist and return new entity`() {
         val orderableTestInsertDto = OrderableTestDtoInput(name = "Test", position = null)
-        val orderableTest = service.create(orderableTestInsertDto.let(mapper::convertDtoToModel))
+        val orderableTest = service.createOrderable(orderableTestInsertDto.let(mapper::convertDtoToModel), null)
         assertNotNull(orderableTest)
-        assertEquals(1, service.findAll().size)
+        assertEquals(1, service.findAllOrderable(null).size)
         assertEquals(orderableTestInsertDto.name, orderableTest.name)
     }
 
     @Test
     fun `findById should return existing entity by ID`() {
         val orderableTestInsertDto = OrderableTestDtoInput(name = "Test", position = null)
-        val orderableTest = service.create(orderableTestInsertDto.let(mapper::convertDtoToModel))
+        val orderableTest = service.createOrderable(orderableTestInsertDto.let(mapper::convertDtoToModel), null)
         val foundOrderableTest = service.findById(orderableTest.id)
         assertEquals(orderableTest.id, foundOrderableTest.id)
         assertEquals(orderableTest.name, foundOrderableTest.name)
@@ -54,7 +54,7 @@ class OrderableTestServiceH2Test @Autowired constructor(
     @Test
     fun `update should modify and persist existing entity`() {
         val orderableTestInsertDto = OrderableTestDtoInput(name = "Test", position = null)
-        val orderableTest = service.create(orderableTestInsertDto.let(mapper::convertDtoToModel))
+        val orderableTest = service.createOrderable(orderableTestInsertDto.let(mapper::convertDtoToModel), null)
         val updatedOrderableTestInsertDto = orderableTestInsertDto.copy(id = orderableTest.id, name = "Updated Test")
         service.update(updatedOrderableTestInsertDto.let(mapper::convertDtoToModel))
         val updatedOrderableTest = service.findById(orderableTest.id)
@@ -64,9 +64,9 @@ class OrderableTestServiceH2Test @Autowired constructor(
     @Test
     fun `deleteById should remove existing entity`() {
         val orderableTestInsertDto = OrderableTestDtoInput(name = "Test", position = null)
-        val orderableTest = service.create(orderableTestInsertDto.let(mapper::convertDtoToModel))
+        val orderableTest = service.createOrderable(orderableTestInsertDto.let(mapper::convertDtoToModel), null)
         service.deleteById(orderableTest.id)
-        assertEquals(0, service.findAll().size)
+        assertEquals(0, service.findAllOrderable(null).size)
     }
 
     @Test
@@ -75,14 +75,14 @@ class OrderableTestServiceH2Test @Autowired constructor(
             OrderableTestDtoInput(name = "Test 1", position = null),
             OrderableTestDtoInput(name = "Test 2", position = null),
         )
-        service.addAll(orderableTest.map(mapper::convertDtoToModel))
-        assertEquals(orderableTest.size, service.findAll().size)
+        service.addAllOrderable(orderableTest.map(mapper::convertDtoToModel), null)
+        assertEquals(orderableTest.size, service.findAllOrderable(null).size)
     }
 
     @Test
     fun `deleteAll should remove all entities`() {
         service.deleteAll()
-        assertEquals(0, service.findAll().size)
+        assertEquals(0, service.findAllOrderable(null).size)
     }
 
     @Test
@@ -96,7 +96,7 @@ class OrderableTestServiceH2Test @Autowired constructor(
     @Test
     fun `create should throw EntityIdAlreadyExistException for existing entity ID`() {
         val existingEntity = OrderableTestDtoInput(name = "Existing Test", position = null)
-        val createdEntity = service.create(existingEntity.let(mapper::convertDtoToModel))
+        val createdEntity = service.createOrderable(existingEntity.let(mapper::convertDtoToModel), null)
 
         val duplicateEntity = OrderableTestDtoInput(id = createdEntity.id, name = "Duplicate Test", position = null)
 

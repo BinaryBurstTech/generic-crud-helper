@@ -61,4 +61,10 @@ abstract class IOrderablePositionableRepository<PARAMS, ENTITY>(
             "SELECT e FROM ${entityClass.simpleName} e ORDER BY e.position ASC", entityClass
         ).resultList
     }
+
+    open fun deleteAllByParams(params: PARAMS?) {
+        entityManager.createQuery(
+            "DELETE FROM ${entityClass.simpleName}"
+        ).executeUpdate()
+    }
 }

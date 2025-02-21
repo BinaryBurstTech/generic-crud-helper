@@ -31,8 +31,8 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
         val orderableTestInsertDto1 = OrderableTestDtoInput(name = "Test 1", position = null)
         val orderableTestInsertDto2 = OrderableTestDtoInput(name = "Test 2", position = null)
 
-        val created1 = service.create(orderableTestInsertDto1.let(mapper::convertDtoToModel))
-        val created2 = service.create(orderableTestInsertDto2.let(mapper::convertDtoToModel))
+        val created1 = service.createOrderable(orderableTestInsertDto1.let(mapper::convertDtoToModel), null)
+        val created2 = service.createOrderable(orderableTestInsertDto2.let(mapper::convertDtoToModel), null)
 
         assertEquals(1, created1.position)
         assertEquals(2, created2.position)
@@ -48,35 +48,41 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
 
     @Test
     fun `deleteById should update positions of remaining entities`() {
-        val entity1 = service.create(OrderableTestDtoInput(name = "Test 1", position = null).let(mapper::convertDtoToModel))
-        val entity2 = service.create(OrderableTestDtoInput(name = "Test 2", position = null).let(mapper::convertDtoToModel))
-        val entity3 = service.create(OrderableTestDtoInput(name = "Test 3", position = null).let(mapper::convertDtoToModel))
+        val entity1 =
+            service.createOrderable(OrderableTestDtoInput(name = "Test 1", position = null).let(mapper::convertDtoToModel), null)
+        val entity2 =
+            service.createOrderable(OrderableTestDtoInput(name = "Test 2", position = null).let(mapper::convertDtoToModel), null)
+        val entity3 =
+            service.createOrderable(OrderableTestDtoInput(name = "Test 3", position = null).let(mapper::convertDtoToModel), null)
 
         assertEquals(1, entity1.position)
         assertEquals(2, entity2.position)
         assertEquals(3, entity3.position)
 
-        service.deleteById(entity2.id)
+        service.deleteOrderableById(entity2.id, null)
 
-        val remainingEntities = service.findAll()
+        val remainingEntities = service.findAllOrderable(null)
         assertEquals(1, remainingEntities[0].position)
         assertEquals(2, remainingEntities[1].position)  // entity3 se posunula nahoru
     }
 
     @Test
     fun `reorder should correctly change position`() {
-        val entity1 = service.create(OrderableTestDtoInput(name = "Test 1", position = null).let(mapper::convertDtoToModel))
-        val entity2 = service.create(OrderableTestDtoInput(name = "Test 2", position = null).let(mapper::convertDtoToModel))
-        val entity3 = service.create(OrderableTestDtoInput(name = "Test 3", position = null).let(mapper::convertDtoToModel))
+        val entity1 =
+            service.createOrderable(OrderableTestDtoInput(name = "Test 1", position = null).let(mapper::convertDtoToModel), null)
+        val entity2 =
+            service.createOrderable(OrderableTestDtoInput(name = "Test 2", position = null).let(mapper::convertDtoToModel), null)
+        val entity3 =
+            service.createOrderable(OrderableTestDtoInput(name = "Test 3", position = null).let(mapper::convertDtoToModel), null)
 
         assertEquals(1, entity1.position)
         assertEquals(2, entity2.position)
         assertEquals(3, entity3.position)
 
         val updatedEntity2 = entity2.copy(position = 1)
-        service.reorder(updatedEntity2)
+        service.reorder(updatedEntity2, null)
 
-        val reorderedEntities = service.findAll()
+        val reorderedEntities = service.findAllOrderable(null)
         assertEquals(1, reorderedEntities[0].position)
         assertEquals(2, reorderedEntities[1].position)
         assertEquals(3, reorderedEntities[2].position)
@@ -87,23 +93,23 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
 
     @Test
     fun `findAll should return empty list when no entities exist`() {
-        val result = service.findAll()
+        val result = service.findAllOrderable(null)
         assertEquals(0, result.size)
     }
 
     @Test
     fun `create should persist and return new entity`() {
         val orderableTestInsertDto = OrderableTestDtoInput(name = "Test", position = null)
-        val orderableTest = service.create(orderableTestInsertDto.let(mapper::convertDtoToModel))
+        val orderableTest = service.createOrderable(orderableTestInsertDto.let(mapper::convertDtoToModel), null)
         assertNotNull(orderableTest)
-        assertEquals(1, service.findAll().size)
+        assertEquals(1, service.findAllOrderable(null).size)
         assertEquals(orderableTestInsertDto.name, orderableTest.name)
     }
 
     @Test
     fun `findById should return existing entity by ID`() {
         val orderableTestInsertDto = OrderableTestDtoInput(name = "Test", position = null)
-        val orderableTest = service.create(orderableTestInsertDto.let(mapper::convertDtoToModel))
+        val orderableTest = service.createOrderable(orderableTestInsertDto.let(mapper::convertDtoToModel), null)
         val foundOrderableTest = service.findById(orderableTest.id)
         assertEquals(orderableTest.id, foundOrderableTest.id)
         assertEquals(orderableTest.name, foundOrderableTest.name)
@@ -112,7 +118,7 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
     @Test
     fun `deleteAll should remove all entities`() {
         service.deleteAll()
-        assertEquals(0, service.findAll().size)
+        assertEquals(0, service.findAllOrderable(null).size)
     }
 
     @Test
@@ -126,12 +132,12 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
     @Test
     fun `create should throw EntityIdAlreadyExistException for existing entity ID`() {
         val existingEntity = OrderableTestDtoInput(name = "Existing Test", position = null)
-        val createdEntity = service.create(existingEntity.let(mapper::convertDtoToModel))
+        val createdEntity = service.createOrderable(existingEntity.let(mapper::convertDtoToModel), null)
 
         val duplicateEntity = OrderableTestDtoInput(id = createdEntity.id, name = "Duplicate Test", position = null)
 
         assertThrows(EntityIdAlreadyExistException::class.java) {
-            service.create(duplicateEntity.let(mapper::convertDtoToModel))
+            service.createOrderable(duplicateEntity.let(mapper::convertDtoToModel), null)
         }
     }
 

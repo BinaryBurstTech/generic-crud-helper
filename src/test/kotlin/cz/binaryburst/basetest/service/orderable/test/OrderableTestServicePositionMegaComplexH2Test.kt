@@ -27,27 +27,27 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
     @Test
     fun `create 10 items, delete 3, add 2, update 4 and verify consistency`() {
         // 🟢 1. Vytvoření 10 položek
-        val createdEntities = service.addAll((1..10).map {
+        val createdEntities = service.addAllOrderable((1..10).map {
             OrderableTestDtoInput(name = "Item $it", position = null).let(mapper::convertDtoToModel)
-        })
+        }, null)
 
         assertEquals(10, createdEntities.size)
 
         // 🔴 2. Smazání 3 položek (ID 3, 5, 8)
         val idsToDelete = listOf(createdEntities[2].id, createdEntities[4].id, createdEntities[7].id)
-        idsToDelete.forEach { service.deleteById(it) }
+        idsToDelete.forEach { service.deleteOrderableById(it, null) }
 
         // ✅ Ověření, že zůstalo 7 položek
-        val remainingAfterDelete = service.findAll()
+        val remainingAfterDelete = service.findAllOrderable(null)
         assertEquals(7, remainingAfterDelete.size)
 
         // 🔵 3. Přidání 2 nových položek (měly by mít `position = 8, 9`)
         val newEntities = listOf(
             OrderableTestDtoInput(name = "New Item 1", position = null),
             OrderableTestDtoInput(name = "New Item 2", position = null)
-        ).map { service.create(it.let(mapper::convertDtoToModel)) }
+        ).map { service.createOrderable(it.let(mapper::convertDtoToModel), null) }
 
-        val allEntitiesAfterAdd = service.findAll()
+        val allEntitiesAfterAdd = service.findAllOrderable(null)
         assertEquals(9, allEntitiesAfterAdd.size) // Celkem by mělo být 9 položek
 
         // 🟡 4. Úprava 4 položek - změníme jména a přesuneme 2 na jiné pozice
@@ -58,12 +58,12 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
             allEntitiesAfterAdd[7].copy(position = 5)   // Přesuneme na 5. místo
         )
         updates.forEach {
-            service.reorder(it)
+            service.reorder(it, null)
             service.update(it)
         }
 
         // 🟠 5. Ověření konzistence pozic
-        val finalEntities = service.findAll()
+        val finalEntities = service.findAllOrderable(null)
         assertEquals(9, finalEntities.size)
 
         // 📌 Kontrola, že pozice jsou **bez děr** a **pořadí je správné**
@@ -83,27 +83,27 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
     @Test
     fun `create 10 items, delete 3, add 2, update 4 (split update and reorder) and verify consistency`() {
         // 🟢 1. Vytvoření 10 položek
-        val createdEntities = service.addAll((1..10).map {
+        val createdEntities = service.addAllOrderable((1..10).map {
             OrderableTestDtoInput(name = "Item $it", position = null).let(mapper::convertDtoToModel)
-        })
+        }, null)
 
         assertEquals(10, createdEntities.size)
 
         // 🔴 2. Smazání 3 položek (ID 2, 6, 9)
         val idsToDelete = listOf(createdEntities[1].id, createdEntities[5].id, createdEntities[8].id)
-        idsToDelete.forEach { service.deleteById(it) }
+        idsToDelete.forEach { service.deleteOrderableById(it, null) }
 
         // ✅ Ověření, že zůstalo 7 položek
-        val remainingAfterDelete = service.findAll()
+        val remainingAfterDelete = service.findAllOrderable(null)
         assertEquals(7, remainingAfterDelete.size)
 
         // 🔵 3. Přidání 2 nových položek (měly by mít `position = 8, 9`)
         val newEntities = listOf(
             OrderableTestDtoInput(name = "New Item A", position = null),
             OrderableTestDtoInput(name = "New Item B", position = null)
-        ).map { service.create(it.let(mapper::convertDtoToModel)) }
+        ).map { service.createOrderable(it.let(mapper::convertDtoToModel), null) }
 
-        val allEntitiesAfterAdd = service.findAll()
+        val allEntitiesAfterAdd = service.findAllOrderable(null)
         assertEquals(9, allEntitiesAfterAdd.size) // Celkem by mělo být 9 položek
 
         // 🟡 4. Úprava 4 položek
@@ -119,11 +119,11 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
         service.update(updates[1])
 
         // 🔹 **Poté změnu pozic provedeme přes `reorder()`**
-        service.reorder(updates[2])
-        service.reorder(updates[3])
+        service.reorder(updates[2], null)
+        service.reorder(updates[3], null)
 
         // 🟠 5. Ověření konzistence pozic
-        val finalEntities = service.findAll()
+        val finalEntities = service.findAllOrderable(null)
         assertEquals(9, finalEntities.size)
 
         // 📌 Kontrola, že pozice jsou **bez děr** a **pořadí je správné**
@@ -143,9 +143,9 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
     @Test
     fun `create 20 items, delete 5, add 4, reorder 6, update 5 and verify consistency`() {
         // 🟢 1. Hromadné vytvoření 20 položek
-        val createdEntities = service.addAll((1..20).map {
+        val createdEntities = service.addAllOrderable((1..20).map {
             OrderableTestDtoInput(name = "Item $it", position = null).let(mapper::convertDtoToModel)
-        })
+        }, null)
 
         assertEquals(20, createdEntities.size)
 
@@ -157,10 +157,10 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
             createdEntities[14].id,
             createdEntities[17].id
         )
-        idsToDelete.forEach { service.deleteById(it) }
+        idsToDelete.forEach { service.deleteOrderableById(it, null) }
 
         // ✅ Ověření, že zůstalo 15 položek
-        val remainingAfterDelete = service.findAll()
+        val remainingAfterDelete = service.findAllOrderable(null)
         assertEquals(15, remainingAfterDelete.size)
 
         // 🔵 3. Přidání 4 nových položek (měly by mít `position = max + 1`)
@@ -169,9 +169,9 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
             OrderableTestDtoInput(name = "New Item B", position = null),
             OrderableTestDtoInput(name = "New Item C", position = null),
             OrderableTestDtoInput(name = "New Item D", position = null)
-        ).map { service.create(it.let(mapper::convertDtoToModel)) }
+        ).map { service.createOrderable(it.let(mapper::convertDtoToModel), null) }
 
-        val allEntitiesAfterAdd = service.findAll()
+        val allEntitiesAfterAdd = service.findAllOrderable(null)
         assertEquals(19, allEntitiesAfterAdd.size) // Celkem by mělo být 19 položek
 
         // 🟡 4. Hromadné přesuny (6 položek)
@@ -183,7 +183,7 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
             allEntitiesAfterAdd[14].copy(position = 4), // Přesun na 4. místo
             allEntitiesAfterAdd[16].copy(position = 8)  // Přesun na 8. místo
         )
-        reorders.forEach { service.reorder(it) }
+        reorders.forEach { service.reorder(it, null) }
 
         // 🟠 5. Hromadné aktualizace názvů u 5 položek
         val updates = listOf(
@@ -198,7 +198,7 @@ class OrderableTestServicePositionMegaComplexH2Test @Autowired constructor(
         }
 
         // 🔍 6. Ověření konzistence pozic
-        val finalEntities = service.findAll()
+        val finalEntities = service.findAllOrderable(null)
         assertEquals(19, finalEntities.size)
 
         // 📌 Kontrola, že pozice jsou **bez děr** a **pořadí je správné**

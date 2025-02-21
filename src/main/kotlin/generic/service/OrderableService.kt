@@ -6,8 +6,8 @@ import cz.binaryburst.generic.entity.OrderableEntity
 import cz.binaryburst.generic.exception.EntityNotFoundException
 import cz.binaryburst.generic.mapper.IOrderableMapper
 import cz.binaryburst.generic.model.OrderableModel
-import cz.binaryburst.generic.repository.OrderableRepository
 import cz.binaryburst.generic.repository.IOrderablePositionableRepository
+import cz.binaryburst.generic.repository.OrderableRepository
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -40,7 +40,7 @@ abstract class OrderableService<
 ) : BaseService<ID, DTO_IN, DTO_OUT, MODEL, ENTITY, REPO, MAPPER>(
     repository = repository,
     mapper = mapper
-), IOrderableService<ID, MODEL> {
+), IOrderableService<ID, PARAMS, MODEL> {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -48,10 +48,11 @@ abstract class OrderableService<
      * Retrieves all entities sorted by position.
      */
     @Transactional
-    override fun findAll(): List<MODEL> {
+    override fun findAllOrderable(params: PARAMS?): List<MODEL> {
         logger.debug("Entering findAll()")
         return try {
-            val models = positionableRepository.findAllByOrderByPositionAsc(null).map { mapper.convertEntityToModel(it) }
+            val models =
+                positionableRepository.findAllByOrderByPositionAsc(params).map { mapper.convertEntityToModel(it) }
             logger.debug("Successfully retrieved {} entities", models.size)
             models
         } catch (e: Exception) {
@@ -66,12 +67,12 @@ abstract class OrderableService<
      * Creates a new entity and manages its position.
      */
     @Transactional
-    override fun create(model: MODEL): MODEL {
+    override fun createOrderable(model: MODEL, params: PARAMS?): MODEL {
         logger.debug("Entering create() with model: {}", model)
         return try {
-            val position = model.position ?: positionableRepository.findMaxPosition(null)?.plus(1) ?: 1
+            val position = model.position ?: positionableRepository.findMaxPosition(params)?.plus(1) ?: 1
             model.position = position
-            positionableRepository.incrementPositions(position, null)
+            positionableRepository.incrementPositions(position, params)
             super.create(model)
         } catch (e: Exception) {
             logger.error("Error occurred while creating entity", e)
@@ -85,12 +86,12 @@ abstract class OrderableService<
      * Deletes an entity by ID and updates positions.
      */
     @Transactional
-    override fun deleteById(id: ID) {
+    override fun deleteOrderableById(id: ID, params: PARAMS?) {
         logger.debug("Entering deleteById() with ID: {}", id)
         try {
             val entity = repository.findByIdOrNull(id) ?: throw EntityNotFoundException(id, "Entity")
             super.deleteById(id)
-            positionableRepository.decrementPositions(entity.position, null)
+            positionableRepository.decrementPositions(entity.position, params)
             logger.debug("Successfully deleted entity with ID: {}", id)
         } catch (e: EntityNotFoundException) {
             logger.warn("Deletion failed: Entity not found", e)
@@ -107,10 +108,10 @@ abstract class OrderableService<
      * Adds multiple entities, ensuring proper position handling.
      */
     @Transactional
-    override fun addAll(models: List<MODEL>): List<MODEL> {
+    override fun addAllOrderable(models: List<MODEL>, params: PARAMS?): List<MODEL> {
         logger.debug("Entering addAll() with models: {}", models)
         return try {
-            models.map { create(it) }
+            models.map { createOrderable(it, params) }
         } catch (e: Exception) {
             logger.error("Error occurred while adding entities", e)
             throw e
@@ -123,15 +124,15 @@ abstract class OrderableService<
      * Reorders an entity within the list based on its new position.
      */
     @Transactional
-    override fun reorder(model: MODEL) {
+    override fun reorder(model: MODEL, params: PARAMS?) {
         logger.debug("Entering reorder() with model: {}", model)
         try {
-            val (entityToUpdate, newPosition) = getEntityAndUpdatePosition(model)
+            val (entityToUpdate, newPosition) = getEntityAndUpdatePosition(model, params)
             if (entityToUpdate.position != newPosition) {
                 if (newPosition < entityToUpdate.position) {
-                    positionableRepository.incrementPositions(newPosition, entityToUpdate.position, null)
+                    positionableRepository.incrementPositions(newPosition, entityToUpdate.position, params)
                 } else {
-                    positionableRepository.decrementPositions(entityToUpdate.position, newPosition, null)
+                    positionableRepository.decrementPositions(entityToUpdate.position, newPosition, params)
                 }
                 entityToUpdate.position = newPosition
                 repository.save(entityToUpdate)
@@ -149,13 +150,30 @@ abstract class OrderableService<
     }
 
     /**
+     * Delete multiple entities.
+     */
+    @Transactional
+    override fun deleteOrderableAll(params: PARAMS?) {
+        logger.debug("Entering deleteAll()")
+        try {
+            positionableRepository.deleteAllByParams(params)
+            logger.debug("Successfully deleted all entities")
+        } catch (e: Exception) {
+            logger.error("Error occurred while deleting all entities", e)
+            throw e
+        } finally {
+            logger.debug("Exiting deleteAll()")
+        }
+    }
+
+    /**
      * Helper function to retrieve an entity and update its position.
      */
-    private fun getEntityAndUpdatePosition(model: MODEL): Pair<ENTITY, Int> {
+    private fun getEntityAndUpdatePosition(model: MODEL, params: PARAMS?): Pair<ENTITY, Int> {
         val entityId = model.id
         val entityToUpdate = repository.findByIdOrNull(entityId)
             ?: throw EntityNotFoundException(entityId, "Entity")
-        val maxPosition = positionableRepository.findMaxPosition(null) ?: 1
+        val maxPosition = positionableRepository.findMaxPosition(params) ?: 1
         val newPosition = model.position?.coerceIn(1, maxPosition + 1) ?: (maxPosition + 1)
         return Pair(entityToUpdate, newPosition)
     }
