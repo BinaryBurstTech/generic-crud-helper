@@ -16,7 +16,7 @@ interface IOrderableService<ID : Serializable, PARAMS : OrderableParams, MODEL :
      *
      * @return A list of all models.
      */
-    fun findAllOrderable(params: PARAMS?): List<MODEL>
+    fun findAllOrderable(params: PARAMS? = null): List<MODEL>
 
     /**
      * Creates a new entity.
@@ -25,7 +25,7 @@ interface IOrderableService<ID : Serializable, PARAMS : OrderableParams, MODEL :
      * @return The created model.
      * @throws EntityIdAlreadyExistException if an entity with the same ID already exists.
      */
-    fun createOrderable(model: MODEL, params: PARAMS?): MODEL
+    fun createOrderable(model: MODEL, params: PARAMS?= null): MODEL
 
     /**
      * Retrieves an entity by its ID.
@@ -51,7 +51,7 @@ interface IOrderableService<ID : Serializable, PARAMS : OrderableParams, MODEL :
      *
      * @param id The ID of the entity to delete.
      */
-    fun deleteOrderableById(id: ID, params: PARAMS?)
+    fun deleteOrderableById(id: ID, params: PARAMS?= null)
 
     /**
      * Adds a list of entities.
@@ -59,7 +59,7 @@ interface IOrderableService<ID : Serializable, PARAMS : OrderableParams, MODEL :
      * @param models The list of models to add.
      * @return A list of the added models.
      */
-    fun addAllOrderable(models: List<MODEL>, params: PARAMS?): List<MODEL>
+    fun addAllOrderable(models: List<MODEL>, params: PARAMS?= null): List<MODEL>
 
     /**
      * Reorders an entity within the list based on its new position.
@@ -74,10 +74,10 @@ interface IOrderableService<ID : Serializable, PARAMS : OrderableParams, MODEL :
      * @throws Exception If any other error occurs during reordering.
      */
 
-    fun reorder(model: MODEL, params: PARAMS?)
+    fun reorder(model: MODEL, params: PARAMS?= null)
 
     /**
      * Deletes all entities.
      */
-    fun deleteOrderableAll(params: PARAMS?)
+    fun deleteOrderableAll(params: PARAMS?= null)
 }
