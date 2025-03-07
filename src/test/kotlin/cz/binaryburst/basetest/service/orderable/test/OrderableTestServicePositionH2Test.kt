@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.Pageable
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
@@ -49,11 +50,26 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
     @Test
     fun `deleteById should update positions of remaining entities`() {
         val entity1 =
-            service.createOrderable(OrderableTestDtoInput(name = "Test 1", position = null).let(mapper::convertDtoToModel), null)
+            service.createOrderable(
+                OrderableTestDtoInput(
+                    name = "Test 1",
+                    position = null
+                ).let(mapper::convertDtoToModel), null
+            )
         val entity2 =
-            service.createOrderable(OrderableTestDtoInput(name = "Test 2", position = null).let(mapper::convertDtoToModel), null)
+            service.createOrderable(
+                OrderableTestDtoInput(
+                    name = "Test 2",
+                    position = null
+                ).let(mapper::convertDtoToModel), null
+            )
         val entity3 =
-            service.createOrderable(OrderableTestDtoInput(name = "Test 3", position = null).let(mapper::convertDtoToModel), null)
+            service.createOrderable(
+                OrderableTestDtoInput(
+                    name = "Test 3",
+                    position = null
+                ).let(mapper::convertDtoToModel), null
+            )
 
         assertEquals(1, entity1.position)
         assertEquals(2, entity2.position)
@@ -61,19 +77,34 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
 
         service.deleteOrderableById(entity2.id, null)
 
-        val remainingEntities = service.findAllOrderable(null)
-        assertEquals(1, remainingEntities[0].position)
-        assertEquals(2, remainingEntities[1].position)  // entity3 se posunula nahoru
+        val remainingEntities = service.findAllOrderable(Pageable.unpaged(), null)
+        assertEquals(1, remainingEntities.content[0].position)
+        assertEquals(2, remainingEntities.content[1].position)  // entity3 se posunula nahoru
     }
 
     @Test
     fun `reorder should correctly change position`() {
         val entity1 =
-            service.createOrderable(OrderableTestDtoInput(name = "Test 1", position = null).let(mapper::convertDtoToModel), null)
+            service.createOrderable(
+                OrderableTestDtoInput(
+                    name = "Test 1",
+                    position = null
+                ).let(mapper::convertDtoToModel), null
+            )
         val entity2 =
-            service.createOrderable(OrderableTestDtoInput(name = "Test 2", position = null).let(mapper::convertDtoToModel), null)
+            service.createOrderable(
+                OrderableTestDtoInput(
+                    name = "Test 2",
+                    position = null
+                ).let(mapper::convertDtoToModel), null
+            )
         val entity3 =
-            service.createOrderable(OrderableTestDtoInput(name = "Test 3", position = null).let(mapper::convertDtoToModel), null)
+            service.createOrderable(
+                OrderableTestDtoInput(
+                    name = "Test 3",
+                    position = null
+                ).let(mapper::convertDtoToModel), null
+            )
 
         assertEquals(1, entity1.position)
         assertEquals(2, entity2.position)
@@ -82,19 +113,19 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
         val updatedEntity2 = entity2.copy(position = 1)
         service.reorder(updatedEntity2, null)
 
-        val reorderedEntities = service.findAllOrderable(null)
-        assertEquals(1, reorderedEntities[0].position)
-        assertEquals(2, reorderedEntities[1].position)
-        assertEquals(3, reorderedEntities[2].position)
+        val reorderedEntities = service.findAllOrderable(Pageable.unpaged(), null)
+        assertEquals(1, reorderedEntities.content[0].position)
+        assertEquals(2, reorderedEntities.content[1].position)
+        assertEquals(3, reorderedEntities.content[2].position)
 
-        assertEquals(entity2.id, reorderedEntities[0].id)  // entity2 se přesunula na první místo
-        assertEquals(entity1.id, reorderedEntities[1].id)  // entity1 se posunula na druhé
+        assertEquals(entity2.id, reorderedEntities.content[0].id)  // entity2 se přesunula na první místo
+        assertEquals(entity1.id, reorderedEntities.content[1].id)  // entity1 se posunula na druhé
     }
 
     @Test
     fun `findAll should return empty list when no entities exist`() {
-        val result = service.findAllOrderable(null)
-        assertEquals(0, result.size)
+        val result = service.findAllOrderable(Pageable.unpaged(), null)
+        assertEquals(0, result.content.size)
     }
 
     @Test
@@ -102,7 +133,7 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
         val orderableTestInsertDto = OrderableTestDtoInput(name = "Test", position = null)
         val orderableTest = service.createOrderable(orderableTestInsertDto.let(mapper::convertDtoToModel), null)
         assertNotNull(orderableTest)
-        assertEquals(1, service.findAllOrderable(null).size)
+        assertEquals(1, service.findAllOrderable(Pageable.unpaged(), null).content.size)
         assertEquals(orderableTestInsertDto.name, orderableTest.name)
     }
 
@@ -118,7 +149,7 @@ class OrderableTestServicePositionH2Test @Autowired constructor(
     @Test
     fun `deleteAll should remove all entities`() {
         service.deleteAll()
-        assertEquals(0, service.findAllOrderable(null).size)
+        assertEquals(0, service.findAllOrderable(Pageable.unpaged(), null).content.size)
     }
 
     @Test

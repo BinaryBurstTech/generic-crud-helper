@@ -2,6 +2,7 @@ package cz.binaryburst.generic.service
 
 import cz.binaryburst.generic.dto.BaseDtoInput
 import cz.binaryburst.generic.dto.BaseDtoOutput
+import cz.binaryburst.generic.dto.PageResponse
 import cz.binaryburst.generic.entity.BaseEntity
 import cz.binaryburst.generic.exception.EntityIdAlreadyExistException
 import cz.binaryburst.generic.exception.EntityIdNotFoundException
@@ -12,6 +13,7 @@ import cz.binaryburst.generic.model.BaseModel
 import cz.binaryburst.generic.repository.BaseRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 import java.io.Serializable
@@ -42,13 +44,48 @@ abstract class BaseService<
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Retrieves all entities from the repository.
+     * Retrieves entities with pagination support.
+     *
+     * @param pageable Pagination information.
+     * @return A paginated response of models.
+     * @throws Exception if an error occurs while fetching the entities.
+     */
+    @Transactional(readOnly = true)
+    override fun findAll(pageable: Pageable): PageResponse<MODEL> {
+        logger.debug("Entering findAll() with pageable: {}", pageable)
+        return try {
+            val page = repository.findAllBy(pageable)
+            val models = page.content.map { mapper.convertEntityToModel(it) }
+            logger.debug("Successfully retrieved {} entities", models.size)
+            PageResponse(
+                content = models,
+                totalElements = page.totalElements,
+                totalPages = page.totalPages,
+                pageNumber = page.number,
+                pageSize = page.size,
+                isLast = page.isLast
+            )
+        } catch (e: Exception) {
+            logger.error("Error occurred while fetching entities with pagination", e)
+            throw e
+        } finally {
+            logger.debug("Exiting findAll()")
+        }
+    }
+
+    /**
+     * Retrieves all entities (deprecated, use findAll with pagination instead).
      *
      * @return A list of all models.
      * @throws Exception if an error occurs while fetching the entities.
      */
+    @Deprecated(
+        "Use findAll(pageable) instead for better performance with large datasets",
+        ReplaceWith("findAll(Pageable.unpaged())")
+    )
+    @Transactional(readOnly = true)
     override fun findAll(): List<MODEL> {
-        logger.debug("Entering findAll()")
+        logger.debug("Entering findAll() - DEPRECATED METHOD")
         return try {
             val models = repository.findAll().map { mapper.convertEntityToModel(it) }
             logger.debug("Successfully retrieved ${models.size} entities")
@@ -102,6 +139,7 @@ abstract class BaseService<
      * @throws EntityNotFoundException if no entity with the given ID is found.
      * @throws Exception if an error occurs during the search.
      */
+    @Transactional(readOnly = true)
     override fun findById(id: ID): MODEL {
         logger.debug("Entering findById() with ID: {}", id)
         return try {
@@ -110,7 +148,7 @@ abstract class BaseService<
             logger.debug("Successfully found entity with ID: {}", id)
             model
         } catch (e: EntityNotFoundException) {
-            logger.warn("Entity not found: $e.message", e)
+            logger.warn("Entity not found: ${e.message}", e)
             throw e
         } catch (e: Exception) {
             logger.error("Error occurred while finding entity by ID: $id", e)
@@ -118,6 +156,18 @@ abstract class BaseService<
         } finally {
             logger.debug("Exiting findById()")
         }
+    }
+
+    /**
+     * Checks if an entity with the given ID exists.
+     *
+     * @param id The ID to check.
+     * @return True if an entity with the given ID exists, false otherwise.
+     */
+    @Transactional(readOnly = true)
+    override fun existsById(id: ID): Boolean {
+        logger.debug("Checking if entity exists with ID: {}", id)
+        return repository.existsWithId(id)
     }
 
     /**
@@ -162,14 +212,21 @@ abstract class BaseService<
      * Deletes an entity by its ID.
      *
      * @param id The ID of the entity to delete.
+     * @throws EntityNotFoundException if no entity with the given ID is found.
      * @throws Exception if an error occurs during deletion.
      */
     @Transactional
     override fun deleteById(id: ID) {
         logger.debug("Entering deleteById() with ID: {}", id)
         try {
+            if (!repository.existsWithId(id)) {
+                throw EntityNotFoundException(id, "Entity")
+            }
             repository.deleteById(id)
             logger.debug("Successfully deleted entity with ID: {}", id)
+        } catch (e: EntityNotFoundException) {
+            logger.warn("Deletion failed: Entity not found", e)
+            throw e
         } catch (e: Exception) {
             logger.error("Error occurred while deleting entity by ID: $id", e)
             throw e
@@ -249,14 +306,17 @@ abstract class BaseService<
     /**
      * Deletes all entities in the repository.
      *
+     * Note: This operation should be used with extreme caution as it removes all data.
+     *
      * @throws Exception if an error occurs during deletion.
      */
+    @Deprecated("This method poses a significant risk to data integrity. Use with extreme caution.")
     @Transactional
     override fun deleteAll() {
-        logger.debug("Entering deleteAll()")
+        logger.warn("CRITICAL OPERATION: Entering deleteAll() - will delete ALL entities")
         try {
             repository.deleteAll()
-            logger.debug("Successfully deleted all entities")
+            logger.warn("CRITICAL OPERATION COMPLETED: Successfully deleted all entities")
         } catch (e: Exception) {
             logger.error("Error occurred while deleting all entities", e)
             throw e
@@ -288,7 +348,7 @@ abstract class BaseService<
     private fun validateNewEntityId(id: ID?) {
         id?.let { validateId ->
             logger.debug("Validating new entity ID: {}", validateId)
-            repository.findById(validateId).ifPresent {
+            if (repository.existsWithId(validateId)) {
                 logger.warn("Entity with ID $validateId already exists")
                 throw EntityIdAlreadyExistException(validateId, "Entity")
             }

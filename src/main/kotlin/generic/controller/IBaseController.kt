@@ -1,5 +1,7 @@
 package cz.binaryburst.generic.controller
 
+import cz.binaryburst.generic.dto.PageResponse
+import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import java.io.Serializable
 
@@ -13,11 +15,12 @@ import java.io.Serializable
 interface IBaseController<ID : Serializable, DTO_IN, DTO_OUT> {
 
     /**
-     * Retrieves all entities.
+     * Retrieves entities with pagination.
      *
-     * @return A ResponseEntity containing a list of all DTO_OUT or an HTTP status code.
+     * @param pageable Pagination information.
+     * @return A ResponseEntity containing a paginated list of DTO_OUT or an HTTP status code.
      */
-    fun getAll(): ResponseEntity<List<DTO_OUT>>
+    fun getAll(pageable: Pageable): ResponseEntity<PageResponse<DTO_OUT>>
 
     /**
      * Retrieves a specific entity by its ID.
@@ -55,15 +58,18 @@ interface IBaseController<ID : Serializable, DTO_IN, DTO_OUT> {
     /**
      * Deletes all entities.
      *
+     * Note: This operation should be used with extreme caution as it removes all data.
+     *
      * @return A ResponseEntity with an HTTP status code.
      */
+    @Deprecated("This method poses a significant risk to data integrity. Use with extreme caution.")
     fun deleteAll(): ResponseEntity<Unit>
 
     /**
      * Adds a list of entities.
      *
      * @param dtos The list of DTO_IN objects to add.
-     * @return A ResponseEntity with an HTTP status code.
+     * @return A ResponseEntity with the created entities or an HTTP status code.
      */
     fun addAll(dtos: List<DTO_IN>): ResponseEntity<List<DTO_OUT>>
 
@@ -71,7 +77,7 @@ interface IBaseController<ID : Serializable, DTO_IN, DTO_OUT> {
      * Updates a list of entities.
      *
      * @param dtos The list of DTO_IN objects containing the updated data.
-     * @return A ResponseEntity with an HTTP status code.
+     * @return A ResponseEntity with the updated entities or an HTTP status code.
      */
     fun updateAll(dtos: List<DTO_IN>): ResponseEntity<List<DTO_OUT>>
 }

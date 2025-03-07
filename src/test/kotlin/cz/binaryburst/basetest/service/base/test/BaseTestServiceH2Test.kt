@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.Pageable
 import org.springframework.test.context.ActiveProfiles
 
 
@@ -30,8 +31,8 @@ class BaseTestServiceH2Test @Autowired constructor(
 
     @Test
     fun `findAll should return empty list when no entities exist`() {
-        val result = service.findAll()
-        assertEquals(0, result.size)
+        val result = service.findAll(Pageable.unpaged())
+        assertEquals(0, result.content.size)
     }
 
     @Test
@@ -39,7 +40,7 @@ class BaseTestServiceH2Test @Autowired constructor(
         val baseTestInsertDto = BaseTestDtoInput(name = "Test")
         val baseTest = service.create(baseTestInsertDto.let(mapper::convertDtoToModel))
         assertNotNull(baseTest)
-        assertEquals(1, service.findAll().size)
+        assertEquals(1, service.findAll(Pageable.unpaged()).content.size)
         assertEquals(baseTestInsertDto.name, baseTest.name)
     }
 
@@ -67,7 +68,7 @@ class BaseTestServiceH2Test @Autowired constructor(
         val baseTestInsertDto = BaseTestDtoInput(name = "Test")
         val baseTest = service.create(baseTestInsertDto.let(mapper::convertDtoToModel))
         service.deleteById(baseTest.id)
-        assertEquals(0, service.findAll().size)
+        assertEquals(0, service.findAll(Pageable.unpaged()).content.size)
     }
 
     @Test
@@ -77,13 +78,13 @@ class BaseTestServiceH2Test @Autowired constructor(
             BaseTestDtoInput(name = "Test 2")
         )
         service.addAll(baseTests.map(mapper::convertDtoToModel))
-        assertEquals(baseTests.size, service.findAll().size)
+        assertEquals(baseTests.size, service.findAll(Pageable.unpaged()).content.size)
     }
 
     @Test
     fun `deleteAll should remove all entities`() {
         service.deleteAll()
-        assertEquals(0, service.findAll().size)
+        assertEquals(0, service.findAll(Pageable.unpaged()).content.size)
     }
 
     @Test

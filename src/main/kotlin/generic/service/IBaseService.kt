@@ -1,6 +1,8 @@
 package cz.binaryburst.generic.service
 
+import cz.binaryburst.generic.dto.PageResponse
 import cz.binaryburst.generic.model.BaseModel
+import org.springframework.data.domain.Pageable
 import java.io.Serializable
 
 /**
@@ -12,10 +14,25 @@ import java.io.Serializable
 interface IBaseService<ID : Serializable, MODEL : BaseModel<ID>> {
 
     /**
+     * Retrieves entities with pagination support.
+     *
+     * @param pageable Pagination parameters.
+     * @return A paginated response of models.
+     */
+    fun findAll(pageable: Pageable): PageResponse<MODEL>
+
+    /**
      * Retrieves all entities.
+     *
+     * Note: This method is deprecated. Use findAll(pageable) instead for better performance
+     * with large datasets.
      *
      * @return A list of all models.
      */
+    @Deprecated(
+        "Use findAll(pageable) instead for better performance with large datasets",
+        ReplaceWith("findAll(Pageable.unpaged())")
+    )
     fun findAll(): List<MODEL>
 
     /**
@@ -35,6 +52,14 @@ interface IBaseService<ID : Serializable, MODEL : BaseModel<ID>> {
      * @throws EntityNotFoundException if no entity with the specified ID is found.
      */
     fun findById(id: ID): MODEL
+
+    /**
+     * Checks if an entity with the given ID exists.
+     *
+     * @param id The ID to check.
+     * @return True if an entity with the given ID exists, false otherwise.
+     */
+    fun existsById(id: ID): Boolean
 
     /**
      * Updates an existing entity.
@@ -71,6 +96,9 @@ interface IBaseService<ID : Serializable, MODEL : BaseModel<ID>> {
 
     /**
      * Deletes all entities.
+     *
+     * Note: This operation should be used with extreme caution as it removes all data.
      */
+    @Deprecated("This method poses a significant risk to data integrity. Use with extreme caution.")
     fun deleteAll()
 }
