@@ -8,7 +8,7 @@ import java.io.Serializable
  * @param id The identifier of the entity that was not found.
  * @param entityType The type of the entity that was not found.
  */
-class EntityNotFoundException(id: Serializable, entityType: String) :
+class EntityNotFoundException(val id: Serializable, val entityType: String) :
     RuntimeException("Entity of type '$entityType' not found with id '$id'")
 
 /**
@@ -16,7 +16,7 @@ class EntityNotFoundException(id: Serializable, entityType: String) :
  *
  * @param operation The operation that required the entity ID.
  */
-class EntityIdNotFoundException(operation: String) :
+class EntityIdNotFoundException(val operation: String) :
     RuntimeException("Entity ID is required for the operation '$operation'")
 
 /**
@@ -25,13 +25,16 @@ class EntityIdNotFoundException(operation: String) :
  * @param id The identifier of the entity that already exists.
  * @param entityType The type of the entity that already exists.
  */
-class EntityIdAlreadyExistException(id: Serializable, entityType: String) :
+class EntityIdAlreadyExistException(val id: Serializable, val entityType: String) :
     RuntimeException("Entity of type '$entityType' already exists with id '$id'")
 
 /**
  * Exception thrown when validation fails for an entity.
  *
  * @param message The validation error message.
+ * @param errors Optional map containing detailed validation errors.
  */
-class EntityValidationException(message: String) :
-    RuntimeException("Entity validation failed: $message")
+class EntityValidationException(
+    override val message: String,
+    val errors: Map<String, String> = emptyMap()
+) : RuntimeException("Entity validation failed: $message")

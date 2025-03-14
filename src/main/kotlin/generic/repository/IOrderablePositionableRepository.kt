@@ -93,7 +93,7 @@ abstract class IOrderablePositionableRepository<PARAMS, ENTITY>(
         logger.debug("findMaxPosition: params={}", params)
         return entityManager.createQuery(
             "SELECT MAX(e.position) FROM ${entityClass.simpleName} e", Int::class.javaObjectType
-        ).singleResult
+        ).resultList.firstOrNull() as Int?
     }
 
     /**

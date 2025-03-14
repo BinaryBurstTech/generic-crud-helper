@@ -7,7 +7,6 @@ import cz.binaryburst.generic.entity.BaseEntity
 import cz.binaryburst.generic.exception.EntityIdAlreadyExistException
 import cz.binaryburst.generic.exception.EntityIdNotFoundException
 import cz.binaryburst.generic.exception.EntityNotFoundException
-import cz.binaryburst.generic.exception.EntityValidationException
 import cz.binaryburst.generic.mapper.IBaseMapper
 import cz.binaryburst.generic.model.BaseModel
 import cz.binaryburst.generic.repository.BaseRepository
@@ -48,36 +47,29 @@ abstract class BaseService<
      *
      * @param pageable Pagination information.
      * @return A paginated response of models.
-     * @throws Exception if an error occurs while fetching the entities.
      */
     @Transactional(readOnly = true)
     override fun findAll(pageable: Pageable): PageResponse<MODEL> {
         logger.debug("Entering findAll() with pageable: {}", pageable)
-        return try {
-            val page = repository.findAllBy(pageable)
-            val models = page.content.map { mapper.convertEntityToModel(it) }
-            logger.debug("Successfully retrieved {} entities", models.size)
-            PageResponse(
-                content = models,
-                totalElements = page.totalElements,
-                totalPages = page.totalPages,
-                pageNumber = page.number,
-                pageSize = page.size,
-                isLast = page.isLast
-            )
-        } catch (e: Exception) {
-            logger.error("Error occurred while fetching entities with pagination", e)
-            throw e
-        } finally {
-            logger.debug("Exiting findAll()")
-        }
+
+        val page = repository.findAllBy(pageable)
+        val models = page.content.map { mapper.convertEntityToModel(it) }
+
+        logger.debug("Successfully retrieved {} entities", models.size)
+        return PageResponse(
+            content = models,
+            totalElements = page.totalElements,
+            totalPages = page.totalPages,
+            pageNumber = page.number,
+            pageSize = page.size,
+            isLast = page.isLast
+        )
     }
 
     /**
      * Retrieves all entities (deprecated, use findAll with pagination instead).
      *
      * @return A list of all models.
-     * @throws Exception if an error occurs while fetching the entities.
      */
     @Deprecated(
         "Use findAll(pageable) instead for better performance with large datasets",
@@ -86,16 +78,12 @@ abstract class BaseService<
     @Transactional(readOnly = true)
     override fun findAll(): List<MODEL> {
         logger.debug("Entering findAll() - DEPRECATED METHOD")
-        return try {
-            val models = repository.findAll().map { mapper.convertEntityToModel(it) }
-            logger.debug("Successfully retrieved ${models.size} entities")
-            models
-        } catch (e: Exception) {
-            logger.error("Error occurred while fetching all entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting findAll()")
-        }
+
+        val entities = repository.findAll()
+        val models = entities.map { mapper.convertEntityToModel(it) }
+
+        logger.debug("Successfully retrieved ${models.size} entities")
+        return models
     }
 
     /**
@@ -104,31 +92,19 @@ abstract class BaseService<
      * @param model The model representing the entity to be created.
      * @return The created model.
      * @throws EntityIdAlreadyExistException if an entity with the same ID already exists.
-     * @throws EntityValidationException if the entity validation fails.
-     * @throws Exception if an error occurs during creation.
      */
     @Transactional
     override fun create(model: MODEL): MODEL {
         logger.debug("Entering create() with model: {}", model)
-        return try {
-            model.getId()?.let { validateNewEntityId(it) }
-            val entity = model.toEntity()
-            val savedEntity = repository.save(entity)
-            val savedModel = mapper.convertEntityToModel(savedEntity)
-            logger.debug("Successfully created entity with ID: {}", savedModel.id)
-            savedModel
-        } catch (e: EntityIdAlreadyExistException) {
-            logger.warn("Entity creation failed: ID already exists", e)
-            throw e
-        } catch (e: EntityValidationException) {
-            logger.warn("Entity creation failed: Validation error", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while creating entity", e)
-            throw e
-        } finally {
-            logger.debug("Exiting create()")
-        }
+
+        model.getId()?.let { validateNewEntityId(it) }
+
+        val entity = model.toEntity()
+        val savedEntity = repository.save(entity)
+        val savedModel = mapper.convertEntityToModel(savedEntity)
+
+        logger.debug("Successfully created entity with ID: {}", savedModel.id)
+        return savedModel
     }
 
     /**
@@ -137,25 +113,18 @@ abstract class BaseService<
      * @param id The ID of the entity to find.
      * @return The model of the found entity.
      * @throws EntityNotFoundException if no entity with the given ID is found.
-     * @throws Exception if an error occurs during the search.
      */
     @Transactional(readOnly = true)
     override fun findById(id: ID): MODEL {
         logger.debug("Entering findById() with ID: {}", id)
-        return try {
-            val model = repository.findByIdOrNull(id)?.let(mapper::convertEntityToModel)
-                ?: throw EntityNotFoundException(id, "Entity")
-            logger.debug("Successfully found entity with ID: {}", id)
-            model
-        } catch (e: EntityNotFoundException) {
-            logger.warn("Entity not found: ${e.message}", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while finding entity by ID: $id", e)
-            throw e
-        } finally {
-            logger.debug("Exiting findById()")
-        }
+
+        val entity = repository.findByIdOrNull(id)
+            ?: throw EntityNotFoundException(id, "Entity")
+
+        val model = mapper.convertEntityToModel(entity)
+        logger.debug("Successfully found entity with ID: {}", id)
+
+        return model
     }
 
     /**
@@ -177,35 +146,22 @@ abstract class BaseService<
      * @return The updated model.
      * @throws EntityNotFoundException if no entity with the given ID is found.
      * @throws EntityIdNotFoundException if the entity ID is not provided.
-     * @throws EntityValidationException if the entity validation fails.
-     * @throws Exception if an error occurs during the update.
      */
     @Transactional
     override fun update(model: MODEL): MODEL {
         logger.debug("Entering update() with model: {}", model)
-        return try {
-            val entityId = model.getId() ?: throw EntityIdNotFoundException("update")
-            val entity = repository.findByIdOrNull(entityId) ?: throw EntityNotFoundException(entityId, "Entity")
-            mapper.updateEntityFromModel(entity, model)
-            val updatedEntity = repository.save(entity)
-            val updatedModel = mapper.convertEntityToModel(updatedEntity)
-            logger.debug("Successfully updated entity with ID: {}", updatedModel.id)
-            updatedModel
-        } catch (e: EntityNotFoundException) {
-            logger.warn("Update failed: Entity not found", e)
-            throw e
-        } catch (e: EntityIdNotFoundException) {
-            logger.warn("Update failed: Entity ID not provided", e)
-            throw e
-        } catch (e: EntityValidationException) {
-            logger.warn("Update failed: Validation error", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while updating entity", e)
-            throw e
-        } finally {
-            logger.debug("Exiting update()")
-        }
+
+        val entityId = model.getId() ?: throw EntityIdNotFoundException("update")
+
+        val entity = repository.findByIdOrNull(entityId)
+            ?: throw EntityNotFoundException(entityId, "Entity")
+
+        val updatedEntity = mapper.updateEntityFromModel(entity, model)
+        val savedEntity = repository.save(updatedEntity)
+        val updatedModel = mapper.convertEntityToModel(savedEntity)
+
+        logger.debug("Successfully updated entity with ID: {}", updatedModel.id)
+        return updatedModel
     }
 
     /**
@@ -213,26 +169,17 @@ abstract class BaseService<
      *
      * @param id The ID of the entity to delete.
      * @throws EntityNotFoundException if no entity with the given ID is found.
-     * @throws Exception if an error occurs during deletion.
      */
     @Transactional
     override fun deleteById(id: ID) {
         logger.debug("Entering deleteById() with ID: {}", id)
-        try {
-            if (!repository.existsWithId(id)) {
-                throw EntityNotFoundException(id, "Entity")
-            }
-            repository.deleteById(id)
-            logger.debug("Successfully deleted entity with ID: {}", id)
-        } catch (e: EntityNotFoundException) {
-            logger.warn("Deletion failed: Entity not found", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while deleting entity by ID: $id", e)
-            throw e
-        } finally {
-            logger.debug("Exiting deleteById()")
+
+        if (!repository.existsWithId(id)) {
+            throw EntityNotFoundException(id, "Entity")
         }
+
+        repository.deleteById(id)
+        logger.debug("Successfully deleted entity with ID: {}", id)
     }
 
     /**
@@ -240,27 +187,23 @@ abstract class BaseService<
      *
      * @param models A list of models representing the entities to add.
      * @return A list of the added models.
-     * @throws EntityValidationException if any entity validation fails.
-     * @throws Exception if an error occurs during the addition.
+     * @throws EntityIdAlreadyExistException if any entity with the same ID already exists.
      */
     @Transactional
     override fun addAll(models: List<MODEL>): List<MODEL> {
         logger.debug("Entering addAll() with models: {}", models)
-        return try {
-            val entities = models.map { it.toEntity() }
-            val savedEntities = repository.saveAllAndFlush(entities)
-            val savedModels = savedEntities.map { mapper.convertEntityToModel(it) }
-            logger.debug("Successfully added ${savedModels.size} entities")
-            savedModels
-        } catch (e: EntityValidationException) {
-            logger.warn("Batch addition failed: Validation error", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while adding entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting addAll()")
+
+        // Check IDs for all entities
+        models.forEach { model ->
+            model.getId()?.let { validateNewEntityId(it) }
         }
+
+        val entities = models.map { it.toEntity() }
+        val savedEntities = repository.saveAllAndFlush(entities)
+        val savedModels = savedEntities.map { mapper.convertEntityToModel(it) }
+
+        logger.debug("Successfully added ${savedModels.size} entities")
+        return savedModels
     }
 
     /**
@@ -270,59 +213,38 @@ abstract class BaseService<
      * @return A list of the updated models.
      * @throws EntityNotFoundException if any entity is not found.
      * @throws EntityIdNotFoundException if any entity ID is not provided.
-     * @throws EntityValidationException if any entity validation fails.
-     * @throws Exception if an error occurs during the update.
      */
     @Transactional
     override fun updateAll(models: List<MODEL>): List<MODEL> {
         logger.debug("Entering updateAll() with models: {}", models)
-        return try {
-            val updatedEntities = models.map { model ->
-                val entityId = model.getId() ?: throw EntityIdNotFoundException("updateAll")
-                val entity = repository.findByIdOrNull(entityId) ?: throw EntityNotFoundException(entityId, "Entity")
-                mapper.updateEntityFromModel(entity, model)
-            }
-            val savedEntities = repository.saveAllAndFlush(updatedEntities)
-            val updatedModels = savedEntities.map { mapper.convertEntityToModel(it) }
-            logger.debug("Successfully updated ${updatedModels.size} entities")
-            updatedModels
-        } catch (e: EntityNotFoundException) {
-            logger.warn("Batch update failed: Some entities not found", e)
-            throw e
-        } catch (e: EntityIdNotFoundException) {
-            logger.warn("Batch update failed: Some entities lacked an ID", e)
-            throw e
-        } catch (e: EntityValidationException) {
-            logger.warn("Batch update failed: Validation error", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while updating entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting updateAll()")
+
+        val updatedEntities = models.map { model ->
+            val entityId = model.getId() ?: throw EntityIdNotFoundException("updateAll")
+            val entity = repository.findByIdOrNull(entityId)
+                ?: throw EntityNotFoundException(entityId, "Entity")
+            mapper.updateEntityFromModel(entity, model)
         }
+
+        val savedEntities = repository.saveAllAndFlush(updatedEntities)
+        val updatedModels = savedEntities.map { mapper.convertEntityToModel(it) }
+
+        logger.debug("Successfully updated ${updatedModels.size} entities")
+        return updatedModels
     }
 
     /**
      * Deletes all entities in the repository.
      *
      * Note: This operation should be used with extreme caution as it removes all data.
-     *
-     * @throws Exception if an error occurs during deletion.
      */
     @Deprecated("This method poses a significant risk to data integrity. Use with extreme caution.")
     @Transactional
     override fun deleteAll() {
         logger.warn("CRITICAL OPERATION: Entering deleteAll() - will delete ALL entities")
-        try {
-            repository.deleteAll()
-            logger.warn("CRITICAL OPERATION COMPLETED: Successfully deleted all entities")
-        } catch (e: Exception) {
-            logger.error("Error occurred while deleting all entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting deleteAll()")
-        }
+
+        repository.deleteAll()
+
+        logger.warn("CRITICAL OPERATION COMPLETED: Successfully deleted all entities")
     }
 
     /**
@@ -345,13 +267,12 @@ abstract class BaseService<
      * @param id The ID to validate.
      * @throws EntityIdAlreadyExistException if an entity with the given ID already exists.
      */
-    private fun validateNewEntityId(id: ID?) {
-        id?.let { validateId ->
-            logger.debug("Validating new entity ID: {}", validateId)
-            if (repository.existsWithId(validateId)) {
-                logger.warn("Entity with ID $validateId already exists")
-                throw EntityIdAlreadyExistException(validateId, "Entity")
-            }
+    private fun validateNewEntityId(id: ID) {
+        logger.debug("Validating new entity ID: {}", id)
+
+        if (repository.existsWithId(id)) {
+            logger.warn("Entity with ID $id already exists")
+            throw EntityIdAlreadyExistException(id, "Entity")
         }
     }
 }

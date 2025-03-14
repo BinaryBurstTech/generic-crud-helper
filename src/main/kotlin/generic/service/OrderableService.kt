@@ -56,25 +56,20 @@ abstract class OrderableService<
     @Transactional
     override fun findAllOrderable(pageable: Pageable, params: PARAMS?): PageResponse<MODEL> {
         logger.debug("Entering findAllOrderable() with pageable: {}", pageable)
-        return try {
-            val page = positionableRepository.findAllByOrderByPositionAsc(pageable, params)
-            val models = page.content.map { mapper.convertEntityToModel(it) }
-            logger.debug("Successfully retrieved paginated entities, page size: {}", models.size)
 
-            PageResponse(
-                content = models,
-                totalElements = page.totalElements,
-                totalPages = page.totalPages,
-                pageNumber = page.number,
-                pageSize = page.size,
-                isLast = page.isLast
-            )
-        } catch (e: Exception) {
-            logger.error("Error occurred while fetching paginated orderable entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting findAllOrderable()")
-        }
+        val page = positionableRepository.findAllByOrderByPositionAsc(pageable, params)
+        val models = page.content.map { mapper.convertEntityToModel(it) }
+
+        logger.debug("Successfully retrieved paginated entities, page size: {}", models.size)
+
+        return PageResponse(
+            content = models,
+            totalElements = page.totalElements,
+            totalPages = page.totalPages,
+            pageNumber = page.number,
+            pageSize = page.size,
+            isLast = page.isLast
+        )
     }
 
     /**
@@ -90,17 +85,12 @@ abstract class OrderableService<
     @Transactional
     override fun findAllOrderable(params: PARAMS?): List<MODEL> {
         logger.debug("Entering findAllOrderable() - DEPRECATED METHOD")
-        return try {
-            val models =
-                positionableRepository.findAllByOrderByPositionAsc(params).map { mapper.convertEntityToModel(it) }
-            logger.debug("Successfully retrieved {} orderable entities", models.size)
-            models
-        } catch (e: Exception) {
-            logger.error("Error occurred while fetching all orderable entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting findAllOrderable()")
-        }
+
+        val entities = positionableRepository.findAllByOrderByPositionAsc(params)
+        val models = entities.map { mapper.convertEntityToModel(it) }
+
+        logger.debug("Successfully retrieved {} orderable entities", models.size)
+        return models
     }
 
     /**
@@ -109,21 +99,17 @@ abstract class OrderableService<
      * @param model The model representing the entity to create.
      * @param params Optional parameters for context.
      * @return The created model.
+     * @throws EntityIdAlreadyExistException if an entity with the same ID already exists.
      */
     @Transactional
     override fun createOrderable(model: MODEL, params: PARAMS?): MODEL {
         logger.debug("Entering createOrderable() with model: {}", model)
-        return try {
-            val position = model.position ?: positionableRepository.findMaxPosition(params)?.plus(1) ?: 1
-            model.position = position
-            positionableRepository.incrementPositions(position, params)
-            super.create(model)
-        } catch (e: Exception) {
-            logger.error("Error occurred while creating orderable entity", e)
-            throw e
-        } finally {
-            logger.debug("Exiting createOrderable()")
-        }
+
+        val position = model.position ?: positionableRepository.findMaxPosition(params)?.plus(1) ?: 1
+        model.position = position
+        positionableRepository.incrementPositions(position, params)
+
+        return super.create(model)
     }
 
     /**
@@ -136,20 +122,14 @@ abstract class OrderableService<
     @Transactional
     override fun deleteOrderableById(id: ID, params: PARAMS?) {
         logger.debug("Entering deleteOrderableById() with ID: {}", id)
-        try {
-            val entity = repository.findByIdOrNull(id) ?: throw EntityNotFoundException(id, "Entity")
-            super.deleteById(id)
-            positionableRepository.decrementPositions(entity.position, params)
-            logger.debug("Successfully deleted orderable entity with ID: {}", id)
-        } catch (e: EntityNotFoundException) {
-            logger.warn("Deletion failed: Entity not found", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while deleting orderable entity", e)
-            throw e
-        } finally {
-            logger.debug("Exiting deleteOrderableById()")
-        }
+
+        val entity = repository.findByIdOrNull(id)
+            ?: throw EntityNotFoundException(id, "Entity")
+
+        super.deleteById(id)
+        positionableRepository.decrementPositions(entity.position, params)
+
+        logger.debug("Successfully deleted orderable entity with ID: {}", id)
     }
 
     /**
@@ -158,18 +138,13 @@ abstract class OrderableService<
      * @param models The list of models to add.
      * @param params Optional parameters for context.
      * @return The list of created models.
+     * @throws EntityIdAlreadyExistException if any entity with the same ID already exists.
      */
     @Transactional
     override fun addAllOrderable(models: List<MODEL>, params: PARAMS?): List<MODEL> {
         logger.debug("Entering addAllOrderable() with models count: {}", models.size)
-        return try {
-            models.map { createOrderable(it, params) }
-        } catch (e: Exception) {
-            logger.error("Error occurred while adding orderable entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting addAllOrderable()")
-        }
+
+        return models.map { createOrderable(it, params) }
     }
 
     /**
@@ -177,37 +152,30 @@ abstract class OrderableService<
      *
      * @param model The model containing the new position.
      * @param params Optional parameters for context.
+     * @throws EntityNotFoundException if no entity with the given ID is found.
      */
     @Transactional
     override fun reorder(model: MODEL, params: PARAMS?) {
         logger.debug("Entering reorder() with model: {}", model)
-        try {
-            val entityId = model.id
-            val entityToUpdate = repository.findByIdOrNull(entityId)
-                ?: throw EntityNotFoundException(entityId, "Entity")
 
-            val maxPosition = positionableRepository.findMaxPosition(params) ?: 1
-            val newPosition = model.position?.coerceIn(1, maxPosition) ?: maxPosition
+        val entityId = model.id
+        val entityToUpdate = repository.findByIdOrNull(entityId)
+            ?: throw EntityNotFoundException(entityId, "Entity")
 
-            if (entityToUpdate.position != newPosition) {
-                if (newPosition < entityToUpdate.position) {
-                    positionableRepository.incrementPositions(newPosition, entityToUpdate.position, params)
-                } else {
-                    positionableRepository.decrementPositions(entityToUpdate.position, newPosition, params)
-                }
-                entityToUpdate.position = newPosition
-                repository.save(entityToUpdate)
+        val maxPosition = positionableRepository.findMaxPosition(params) ?: 1
+        val newPosition = model.position?.coerceIn(1, maxPosition) ?: maxPosition
+
+        if (entityToUpdate.position != newPosition) {
+            if (newPosition < entityToUpdate.position) {
+                positionableRepository.incrementPositions(newPosition, entityToUpdate.position, params)
+            } else {
+                positionableRepository.decrementPositions(entityToUpdate.position, newPosition, params)
             }
-            logger.debug("Successfully reordered entity to position: {}", newPosition)
-        } catch (e: EntityNotFoundException) {
-            logger.warn("Reorder failed: Entity not found", e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error occurred while reordering entity", e)
-            throw e
-        } finally {
-            logger.debug("Exiting reorder()")
+            entityToUpdate.position = newPosition
+            repository.save(entityToUpdate)
         }
+
+        logger.debug("Successfully reordered entity to position: {}", newPosition)
     }
 
     /**
@@ -219,14 +187,9 @@ abstract class OrderableService<
     @Transactional
     override fun deleteOrderableAll(params: PARAMS?) {
         logger.warn("CRITICAL OPERATION: Entering deleteOrderableAll()")
-        try {
-            positionableRepository.deleteAllByParams(params)
-            logger.warn("CRITICAL OPERATION COMPLETED: Successfully deleted all orderable entities")
-        } catch (e: Exception) {
-            logger.error("Error occurred while deleting all orderable entities", e)
-            throw e
-        } finally {
-            logger.debug("Exiting deleteOrderableAll()")
-        }
+
+        positionableRepository.deleteAllByParams(params)
+
+        logger.warn("CRITICAL OPERATION COMPLETED: Successfully deleted all orderable entities")
     }
 }
