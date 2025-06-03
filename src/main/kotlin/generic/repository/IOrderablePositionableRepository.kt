@@ -14,7 +14,7 @@ import org.springframework.data.domain.Pageable
  * @param ENTITY The type of the entity.
  */
 abstract class IOrderablePositionableRepository<PARAMS, ENTITY>(
-    private val entityManager: EntityManager,
+    val entityManager: EntityManager,
     private val entityClass: Class<ENTITY>
 ) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
