@@ -18,6 +18,19 @@ class NodePositionableRepository(
     NodeEntity::class.java
 ) {
 
+    private fun buildAdditionalConditions(params: NodeParams?): String {
+        val conditions = mutableListOf<String>()
+
+        params?.groupId?.let { conditions.add("e.group.id = :groupId") }
+        params?.parentId?.let {
+            conditions.add("e.parent.id = :parentId")
+        } ?: conditions.add("e.parent IS NULL")
+
+        return if (conditions.isNotEmpty()) {
+            " AND " + conditions.joinToString(" AND ")
+        } else ""
+    }
+
     private fun buildWhereClause(params: NodeParams?): String {
         val conditions = mutableListOf<String>()
 
@@ -37,9 +50,8 @@ class NodePositionableRepository(
     }
 
     override fun incrementPositions(newPosition: Int, oldPosition: Int, params: NodeParams?) {
-        val whereClause = buildWhereClause(params)
-        val queryString =
-            "UPDATE NodeEntity e SET e.position = e.position + 1 WHERE e.position >= :newPosition AND e.position < :oldPosition$whereClause"
+        val additionalConditions = buildAdditionalConditions(params)
+        val queryString = "UPDATE NodeEntity e SET e.position = e.position + 1 WHERE e.position >= :newPosition AND e.position < :oldPosition$additionalConditions"
 
         val query = entityManager.createQuery(queryString)
             .setParameter("newPosition", newPosition)
@@ -50,9 +62,8 @@ class NodePositionableRepository(
     }
 
     override fun decrementPositions(oldPosition: Int, newPosition: Int, params: NodeParams?) {
-        val whereClause = buildWhereClause(params)
-        val queryString =
-            "UPDATE NodeEntity e SET e.position = e.position - 1 WHERE e.position > :oldPosition AND e.position <= :newPosition$whereClause"
+        val additionalConditions = buildAdditionalConditions(params)
+        val queryString = "UPDATE NodeEntity e SET e.position = e.position - 1 WHERE e.position > :oldPosition AND e.position <= :newPosition$additionalConditions"
 
         val query = entityManager.createQuery(queryString)
             .setParameter("oldPosition", oldPosition)
@@ -63,9 +74,8 @@ class NodePositionableRepository(
     }
 
     override fun incrementPositions(position: Int, params: NodeParams?) {
-        val whereClause = buildWhereClause(params)
-        val queryString =
-            "UPDATE NodeEntity e SET e.position = e.position + 1 WHERE e.position >= :position$whereClause"
+        val additionalConditions = buildAdditionalConditions(params)
+        val queryString = "UPDATE NodeEntity e SET e.position = e.position + 1 WHERE e.position >= :position$additionalConditions"
 
         val query = entityManager.createQuery(queryString)
             .setParameter("position", position)
@@ -75,8 +85,8 @@ class NodePositionableRepository(
     }
 
     override fun decrementPositions(position: Int, params: NodeParams?) {
-        val whereClause = buildWhereClause(params)
-        val queryString = "UPDATE NodeEntity e SET e.position = e.position - 1 WHERE e.position > :position$whereClause"
+        val additionalConditions = buildAdditionalConditions(params)
+        val queryString = "UPDATE NodeEntity e SET e.position = e.position - 1 WHERE e.position > :position$additionalConditions"
 
         val query = entityManager.createQuery(queryString)
             .setParameter("position", position)
