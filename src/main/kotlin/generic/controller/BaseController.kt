@@ -42,7 +42,7 @@ abstract class BaseController<
         SERVICE : BaseService<ID, DTO_IN, DTO_OUT, MODEL, ENTITY, REPO, MAPPER>,
         >(
     private val service: SERVICE,
-    private val mapper: MAPPER
+    val mapper: MAPPER
 ) : IBaseController<ID, DTO_IN, DTO_OUT> {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)

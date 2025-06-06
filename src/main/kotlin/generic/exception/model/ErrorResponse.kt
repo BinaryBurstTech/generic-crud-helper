@@ -1,7 +1,7 @@
 package cz.binaryburst.generic.exception.model
 
-import java.time.LocalDateTime
 import java.io.Serializable
+import java.time.LocalDateTime
 
 /**
  * Standardized model for error responses.

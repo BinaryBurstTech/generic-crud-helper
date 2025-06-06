@@ -7,12 +7,12 @@ import cz.binaryburst.generic.exception.EntityValidationException
 import cz.binaryburst.generic.exception.model.ErrorResponse
 import cz.binaryburst.generic.exception.util.ErrorResponseUtils
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 /**
  * This is an example of how an application should implement exception handling
