@@ -1,6 +1,6 @@
 package cz.binaryburst.treestructure.group.controller
 
-import cz.binaryburst.generic.controller.BaseController
+import cz.binaryburst.generic.controller.OrderableController
 import cz.binaryburst.generic.dto.PageResponse
 import cz.binaryburst.treestructure.group.dto.GroupDtoInput
 import cz.binaryburst.treestructure.group.dto.GroupDtoOutput
@@ -11,7 +11,6 @@ import cz.binaryburst.treestructure.group.model.GroupModel
 import cz.binaryburst.treestructure.group.repository.GroupRepository
 import cz.binaryburst.treestructure.group.service.GroupService
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -20,8 +19,9 @@ import org.springframework.web.bind.annotation.*
 class GroupController(
     private val groupService: GroupService,
     private val groupMapper: GroupMapper
-) : BaseController<
+) : OrderableController<
         Long,
+        GroupParams,
         GroupDtoInput,
         GroupDtoOutput,
         GroupModel,
@@ -30,10 +30,11 @@ class GroupController(
         GroupRepository,
         GroupService
         >(
-    service = groupService,
+    orderableService = groupService,
     mapper = groupMapper
 ) {
 
+    // Base CRUD endpoints
     @GetMapping
     override fun getAll(pageable: Pageable) = super.getAll(pageable)
 
@@ -65,16 +66,7 @@ class GroupController(
         @RequestParam(required = false) zoneId: Long?
     ): ResponseEntity<PageResponse<GroupDtoOutput>> {
         val params = if (zoneId != null) GroupParams(zoneId) else null
-        val pageResponse = groupService.findAllOrderable(pageable, params)
-        val dtoPageResponse = PageResponse(
-            content = pageResponse.content.map(groupMapper::convertModelToDtoOut),
-            totalElements = pageResponse.totalElements,
-            totalPages = pageResponse.totalPages,
-            pageNumber = pageResponse.pageNumber,
-            pageSize = pageResponse.pageSize,
-            isLast = pageResponse.isLast
-        )
-        return ResponseEntity(dtoPageResponse, HttpStatus.OK)
+        return getAllOrderable(pageable, params)
     }
 
     @PostMapping("/orderable")
@@ -83,10 +75,7 @@ class GroupController(
         @RequestParam(required = false) zoneId: Long?
     ): ResponseEntity<GroupDtoOutput> {
         val params = if (zoneId != null) GroupParams(zoneId) else null
-        val model = groupMapper.convertDtoToModel(dto)
-        val createdModel = groupService.createOrderable(model, params)
-        val createdDto = groupMapper.convertModelToDtoOut(createdModel)
-        return ResponseEntity(createdDto, HttpStatus.CREATED)
+        return createOrderable(dto, params)
     }
 
     @DeleteMapping("/orderable/{id}")
@@ -95,8 +84,7 @@ class GroupController(
         @RequestParam(required = false) zoneId: Long?
     ): ResponseEntity<Unit> {
         val params = if (zoneId != null) GroupParams(zoneId) else null
-        groupService.deleteOrderableById(id, params)
-        return ResponseEntity(HttpStatus.NO_CONTENT)
+        return deleteOrderableById(id, params)
     }
 
     @PostMapping("/orderable/batch")
@@ -105,10 +93,7 @@ class GroupController(
         @RequestParam(required = false) zoneId: Long?
     ): ResponseEntity<List<GroupDtoOutput>> {
         val params = if (zoneId != null) GroupParams(zoneId) else null
-        val models = dtos.map(groupMapper::convertDtoToModel)
-        val createdModels = groupService.addAllOrderable(models, params)
-        val createdDtos = createdModels.map(groupMapper::convertModelToDtoOut)
-        return ResponseEntity(createdDtos, HttpStatus.CREATED)
+        return addAllOrderable(dtos, params)
     }
 
     @PutMapping("/orderable/reorder")
@@ -117,18 +102,13 @@ class GroupController(
         @RequestParam(required = false) zoneId: Long?
     ): ResponseEntity<GroupDtoOutput> {
         val params = if (zoneId != null) GroupParams(zoneId) else null
-        val model = groupMapper.convertDtoToModel(dto)
-        groupService.reorder(model, params)
-        val updatedModel = groupService.findById(model.id)
-        val updatedDto = groupMapper.convertModelToDtoOut(updatedModel)
-        return ResponseEntity(updatedDto, HttpStatus.OK)
+        return reorder(dto, params)
     }
 
     @DeleteMapping("/orderable")
     fun deleteAllOrderable(@RequestParam(required = false) zoneId: Long?): ResponseEntity<Unit> {
         val params = if (zoneId != null) GroupParams(zoneId) else null
-        groupService.deleteOrderableAll(params)
-        return ResponseEntity(HttpStatus.NO_CONTENT)
+        return deleteAllOrderable(params)
     }
 
     // Legacy endpoints

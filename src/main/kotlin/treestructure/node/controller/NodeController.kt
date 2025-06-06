@@ -1,6 +1,6 @@
 package cz.binaryburst.treestructure.node.controller
 
-import cz.binaryburst.generic.controller.BaseController
+import cz.binaryburst.generic.controller.OrderableController
 import cz.binaryburst.generic.dto.PageResponse
 import cz.binaryburst.treestructure.node.dto.NodeDtoInput
 import cz.binaryburst.treestructure.node.dto.NodeDtoOutput
@@ -11,7 +11,6 @@ import cz.binaryburst.treestructure.node.model.NodeModel
 import cz.binaryburst.treestructure.node.repository.NodeRepository
 import cz.binaryburst.treestructure.node.service.NodeService
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -20,8 +19,9 @@ import org.springframework.web.bind.annotation.*
 class NodeController(
     private val nodeService: NodeService,
     private val nodeMapper: NodeMapper
-) : BaseController<
+) : OrderableController<
         Long,
+        NodeParams,
         NodeDtoInput,
         NodeDtoOutput,
         NodeModel,
@@ -30,10 +30,11 @@ class NodeController(
         NodeRepository,
         NodeService
         >(
-    service = nodeService,
+    orderableService = nodeService,
     mapper = nodeMapper
 ) {
 
+    // Base CRUD endpoints
     @GetMapping
     override fun getAll(pageable: Pageable) = super.getAll(pageable)
 
@@ -66,16 +67,7 @@ class NodeController(
         @RequestParam(required = false) parentId: Long?
     ): ResponseEntity<PageResponse<NodeDtoOutput>> {
         val params = NodeParams(groupId, parentId)
-        val pageResponse = nodeService.findAllOrderable(pageable, params)
-        val dtoPageResponse = PageResponse(
-            content = pageResponse.content.map(nodeMapper::convertModelToDtoOut),
-            totalElements = pageResponse.totalElements,
-            totalPages = pageResponse.totalPages,
-            pageNumber = pageResponse.pageNumber,
-            pageSize = pageResponse.pageSize,
-            isLast = pageResponse.isLast
-        )
-        return ResponseEntity(dtoPageResponse, HttpStatus.OK)
+        return getAllOrderable(pageable, params)
     }
 
     @PostMapping("/orderable")
@@ -85,10 +77,7 @@ class NodeController(
         @RequestParam(required = false) parentId: Long?
     ): ResponseEntity<NodeDtoOutput> {
         val params = NodeParams(groupId ?: dto.groupId, parentId ?: dto.parentId)
-        val model = nodeMapper.convertDtoToModel(dto)
-        val createdModel = nodeService.createOrderable(model, params)
-        val createdDto = nodeMapper.convertModelToDtoOut(createdModel)
-        return ResponseEntity(createdDto, HttpStatus.CREATED)
+        return createOrderable(dto, params)
     }
 
     @DeleteMapping("/orderable/{id}")
@@ -98,8 +87,7 @@ class NodeController(
         @RequestParam(required = false) parentId: Long?
     ): ResponseEntity<Unit> {
         val params = NodeParams(groupId, parentId)
-        nodeService.deleteOrderableById(id, params)
-        return ResponseEntity(HttpStatus.NO_CONTENT)
+        return deleteOrderableById(id, params)
     }
 
     @PostMapping("/orderable/batch")
@@ -109,10 +97,7 @@ class NodeController(
         @RequestParam(required = false) parentId: Long?
     ): ResponseEntity<List<NodeDtoOutput>> {
         val params = NodeParams(groupId, parentId)
-        val models = dtos.map(nodeMapper::convertDtoToModel)
-        val createdModels = nodeService.addAllOrderable(models, params)
-        val createdDtos = createdModels.map(nodeMapper::convertModelToDtoOut)
-        return ResponseEntity(createdDtos, HttpStatus.CREATED)
+        return addAllOrderable(dtos, params)
     }
 
     @PutMapping("/orderable/reorder")
@@ -122,11 +107,7 @@ class NodeController(
         @RequestParam(required = false) parentId: Long?
     ): ResponseEntity<NodeDtoOutput> {
         val params = NodeParams(groupId ?: dto.groupId, parentId ?: dto.parentId)
-        val model = nodeMapper.convertDtoToModel(dto)
-        nodeService.reorder(model, params)
-        val updatedModel = nodeService.findById(model.id)
-        val updatedDto = nodeMapper.convertModelToDtoOut(updatedModel)
-        return ResponseEntity(updatedDto, HttpStatus.OK)
+        return reorder(dto, params)
     }
 
     @DeleteMapping("/orderable")
@@ -135,8 +116,7 @@ class NodeController(
         @RequestParam(required = false) parentId: Long?
     ): ResponseEntity<Unit> {
         val params = NodeParams(groupId, parentId)
-        nodeService.deleteOrderableAll(params)
-        return ResponseEntity(HttpStatus.NO_CONTENT)
+        return deleteAllOrderable(params)
     }
 
     // Legacy endpoints with ordering
