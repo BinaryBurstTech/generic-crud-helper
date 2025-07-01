@@ -109,7 +109,6 @@ abstract class BaseController<
     /**
      * Updates an existing entity by its ID.
      *
-     * @param id The ID of the entity to update.
      * @param dto The DTO_IN object containing the updated data.
      * @return A ResponseEntity containing the DTO_OUT of the updated entity.
      * @throws IllegalArgumentException if the path variable ID and DTO ID do not match.
@@ -117,12 +116,8 @@ abstract class BaseController<
      * @throws EntityIdNotFoundException if the entity ID is not provided.
      * @throws EntityValidationException if validation fails.
      */
-    override fun update(id: ID, dto: DTO_IN): ResponseEntity<DTO_OUT> {
-        logger.debug("Entering update() with ID: {} and DTO: {}", id, dto)
-
-        if (id != dto.id) {
-            throw IllegalArgumentException("Path variable ID (${id}) and DTO ID (${dto.id}) do not match")
-        }
+    override fun update(dto: DTO_IN): ResponseEntity<DTO_OUT> {
+        logger.debug("Entering update() DTO: {}", dto)
 
         val model = mapper.convertDtoToModel(dto)
         val updatedModel = service.update(model)

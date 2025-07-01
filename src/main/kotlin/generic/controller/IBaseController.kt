@@ -45,7 +45,7 @@ interface IBaseController<ID : Serializable, DTO_IN, DTO_OUT> {
      * @param dto The DTO_IN object containing the updated data.
      * @return A ResponseEntity containing the DTO_OUT of the updated entity or an HTTP status code.
      */
-    fun update(id: ID, dto: DTO_IN): ResponseEntity<DTO_OUT>
+    fun update(dto: DTO_IN): ResponseEntity<DTO_OUT>
 
     /**
      * Deletes a specific entity by its ID.
